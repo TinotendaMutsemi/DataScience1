@@ -1,0 +1,219 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+ls()
+```
+
+
+
+
+```{r}
+
+rm(list = ls()) #ls() lists all the variables in the env, rm() will clean the env off all variables in list parameter
+set.seed(4026) #for reproducability
+
+#Simulated data #the data we are goin to test on, we assume this data represents the population
+n <- 100
+x <- runif(n, -2, 2)  #?runif, used to generate n random number of uniform distrubtion with min value -2 and max 2
+y <- x + 2*cos(5*x) + rnorm(n, sd = sqrt(2)) #simulated random data + random error with mean zero
+
+#The true function  #the data the model should genaralize to, usually unknown in real world.
+xx <- seq(-2, 2, length.out = 1000)
+f <- xx + 2*cos(5*xx)
+
+#Fit cubic splines with increasing degrees of freedom
+for(dof in 2:50){
+  fhat <- smooth.spline(x, y, df = dof)
+  plot(x, y, pch = 16)
+  lines(xx, f, 'l', lwd = 2)
+  lines(fhat, col = 'blue', lwd = 2)
+  title(main = paste('Degrees of freedom:', dof))
+  legend('bottomright', c('f(x) - True', expression(hat(f)(x) ~ '- Cubic spline')),
+         col = c('black', 'blue'), lty = 1, lwd = 2)
+}
+```
+
+
+```{r}
+
+set.seed(1)
+
+n <- 100          #Sample size
+num_sims <- 1000  #Number of iterations (could be parallelised)
+dofs <- 2:25      #Model complexities
+var_eps <- 2      #Var(epsilon): The irreducible error
+
+pred_mat <- matrix(nrow = num_sims, ncol = n) #To store each set of predictions
+mses <- vector(length = num_sims)             #Also want to track the testing MSEs
+red_err <- vector(length = num_sims)          #As well as the reducible error
+
+#Herein we will capture the deconstructed components for each model
+results <- data.frame(Var = NA, Bias2 = NA, Red_err = NA, MSE = NA)
+
+#Testing data
+x_test <- runif(n, -2, 2)
+f_test <- x_test + 2*cos(5*x_test) #This is the part we don't know outside sims!!
+
+d <- 0 #To keep track of dof iterations, even when changing the range
+
+for(dof in dofs) { #Repeat over all model complexities
+  d <- d+1
+  for(iter in 1:num_sims){ 
+    
+    #Training data
+    x_train <- runif(n, -2, 2)
+    y_train <- x_train + 2*cos(5*x_train) + rnorm(n, sd = sqrt(var_eps))
+    
+    #Add the noise
+    y_test <- f_test + rnorm(n, sd = sqrt(var_eps))
+    
+    #Fit cubic spline
+    spline_mod <- smooth.spline(x_train, y_train, df = dof)
+    
+    #Predict on OOS data
+    yhat <- predict(spline_mod, x_test)$y
+    
+    #And store
+    pred_mat[iter, ] <- yhat
+    red_err[iter] <- mean((f_test - yhat)^2)
+    mses[iter] <- mean((y_test - yhat)^2)
+  }
+  
+  #Average each component over all iterations
+  var_fhat <- mean(apply(pred_mat, 2, var))           #E[\hat{f} - E(\hat{f})]^2
+  bias2_fhat <- mean((colMeans(pred_mat) - f_test)^2) #E[E(\hat{f}) - f]^2
+  reducible <- mean(red_err)                          #E[f - \hat{f}]^2
+  MSE <- mean(mses)                                   #E[y_0 - \hat{f}]^2
+  
+  results[d, ] <- c(var_fhat, bias2_fhat, reducible, MSE)
+}
+
+#Plot the results
+plot(dofs, results$MSE, 'l', col = 'darkred', lwd = 2,
+     xlab = 'Model complexity', ylab = '', ylim = c(0, max(results)))
+lines(dofs, results$Bias2, 'l', col = 'lightblue', lwd = 2)
+lines(dofs, results$Var, 'l', col = 'orange', lwd = 2)
+lines(dofs, results$Red_err, 'l', lty = 2, lwd = 2)
+legend('topright', 
+       c('MSE', expression(Bias^2 ~ (hat(f))), expression(Var(hat(f))), 'Reducible Error'), 
+       col = c('darkred', 'lightblue', 'orange', 'black'), lty = c(rep(1, 3), 2), lwd = 2)
+
+abline(v = dofs[which.min(results$MSE)], lty = 3) #Complexity minimising MSE
+abline(h = var_eps, lty = 3)                      #MSE lower bound
+```
+
+
+
+
+
+```{r}
+
+#Is reducible error = var(fhat) + bias^2(fhat)?
+ifelse(isTRUE(all.equal(results$Red_err, 
+                        results$Var + results$Bias2, 
+                        tolerance = 0.001)),
+       'Happy days! :D', 
+       'Haibo...')
+```
+
+
+```{r}
+#Is Test MSE = var(fhat) + bias^2(fhat) + var(eps)?
+ifelse(isTRUE(all.equal(results$MSE, 
+                        results$Var + results$Bias2 + var_eps, 
+                        tolerance = 0.01)),
+       'Happy days! :D', 
+       'Haibo...')
+
+```
+
+```{r}
+#LECTURE 2
+
+```
+
+
+```{r}
+set.seed(4026)
+
+#Simulated data
+n <- 100 
+k <- 50  #We will apply 10-fold CV, as k -> n, the validation error increases and training error is more stable.
+x <- runif(n, -2, 2)
+y <- x + 2*cos(5*x) + rnorm(n, sd = sqrt(2))
+
+#Here we will collect the out-of-sample and in-sample errors
+cv_k <- c()
+train_err <- c()
+
+# We don't actually need to randomise, since x's are random, but one should in general
+ind <- sample(n) 
+x <- x[ind]
+y <- y[ind]
+
+folds <- cut(1:n, breaks = k, labels = F)   #Create indices for k folds
+
+#use cntrl + up to show auto complete of previous run objects in console
+#10-fold CV
+for(fld in 1:k){
+  x_train <- x[folds != fld]                    #Could streamline this code, (see next block)
+  x_valid <- x[folds == fld]                    #but this is easier to follow   
+  y_train <- y[folds != fld]                    
+  y_valid <- y[folds == fld]
+  fit <- smooth.spline(x_train, y_train, df = 8)
+  valid_pred <- predict(fit, x_valid)$y
+  train_pred <- predict(fit, x_train)$y
+  cv_k <- c(cv_k, mean((valid_pred - y_valid)^2)) #cross val error is the mse 
+  train_err <- c(train_err, mean((train_pred - y_train)^2))
+  
+  #One should rather write the above into a function... 
+  #But the plotting needs to be inside the loop for the notes' rendering
+  par(mfrow = c(1, 2))
+  plot(x_train, y_train, pch = 16, xlab = 'x', ylab = 'y', 
+       xlim = c(min(x), max(x)), ylim = c(min(y), max(y)))
+  points(x_valid, y_valid, pch = 16, col = 'gray')
+  segments(x_valid, y_valid, x_valid, valid_pred,
+           col = 'red', lty = 3, lwd = 2)
+  lines(fit, col = 'blue', lwd = 2)
+  title(main = paste('Fold:', fld))
+  legend('bottomright', c('Training', 'Validation', 'Errors'), 
+         col = c('black', 'gray', 'red'), 
+         pch = c(16, 16, NA),
+         lty = c(NA, NA, 3),
+         lwd = c(NA, NA, 2))
+  plot(1:fld, cv_k, 'b', pch = 16, col = 'red', lwd = 2, xlab = 'Fold', ylab = 'MSE', 
+       xlim = c(1, k), ylim = c(1, 5.5))
+  lines(1:fld, train_err, 'b', pch = 16, lwd = 2)
+  legend('topright', c('Training', 'Validation'), col = c('black', 'red'), lwd = 2)
+}
+```
+
+```{r}
+#example 1 contnd
+#Keep track of MSE per fold, per model
+fold_mses <- matrix(nrow = 10, ncol = length(dofs))
+
+for(fld in 1:k){
+  d <- 0
+  for(dof in dofs){ #Using the same dofs as earlier
+    d <- d + 1
+    fit <- smooth.spline(x[folds != fld], y[folds != fld], df = dof) 
+    valid_pred <- predict(fit, x[folds == fld])$y
+    fold_mses[fld, d] <- mean((valid_pred - y[folds == fld])^2)
+  }
+}
+#Average over all folds
+cv_mses <- colMeans(fold_mses)
+
+# Compare the true MSE from earlier
+plot(dofs, results$MSE, 'l', col = 'darkred', lwd = 2,
+     xlab = 'Model complexity', ylab = '', ylim = c(0, max(cv_mses)))
+lines(dofs, cv_mses, 'l', col = 'grey', lwd = 2)
+legend('bottomright', c('CV MSE', 'True test MSE'), col = c('gray', 'darkred'), lty = 1, lwd = 2)
+abline(v = dofs[which.min(results$MSE)], lty = 3)
+points(dofs[which.min(cv_mses)], min(cv_mses), pch = 13, cex = 2.5, lwd = 2)
+```
+

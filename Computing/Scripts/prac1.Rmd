@@ -1,0 +1,47 @@
+```{r}
+setwd("C:/Users/mutse/OneDrive/Desktop/UCT/Courses/Computing/scripts")
+```
+
+```{r}
+2 + 3 * 5 # Note the order of operations.
+log (10) # Natural logarithm with base e=2.718282
+4^2 # 4 raised to the second power
+15/4 # Division
+sqrt (16) # Square root
+abs (3-7) # Absolute value of 3-7
+pi # The mysterious number
+exp(2) # exponential function
+15 %/% 4 # This is the integer divide operation
+?"%/%" # Help on the function
+# This is a comment line
+```
+```{r}
+x<- log(2.843432)*pi
+x
+sqrt(x)
+floor(x) # largest integer less than or equal to x (Gauss number)
+```
+
+
+
+```{r}
+
+x1 = x2 - 2
+x2 = 2(x1 -1) - 1
+
+x1 = 2(x1 - 1) - 1 - 2
+x1 = 2x1 - 5
+x1 = 0.5(x1 - 7)
+x1 = 5
+x2 = 3
+
+```
+
+```{r}
+#create matrix
+#use solve create the inverse of matrix
+#indexing of matrix
+x1, x2 <- c()%%c()
+```
+
+

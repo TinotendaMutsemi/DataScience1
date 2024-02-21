@@ -1,0 +1,38 @@
+```{r}
+library(sf)
+library(leaflet)
+```
+
+```{r}
+lat <- c(-33.34456, -32.847563)
+lon <- c(19.474663, 19.74632)
+place <- c('cpt', 'hre')
+
+df <- data.frame(lon, lat, place, stringsAsFactors = FALSE)
+df
+```
+
+
+```{r}
+points <- st_as_sf(df, coords = c('lon', 'lat'), crs = 4326)  #crs give a projection method from the 2d long, lat to 3d
+
+point1_sg <- c(-33,,44832,,19.34874) %>% st_point()
+
+#st_crs() is used to checkk the crs of the data
+
+# homework st_transform, what does it do?
+#homework: differentiate between covariate and marks 
+#eg earthquake: mag, depth are amrks, but the fault line is a covariate (covariates affect the distrubution of the point partten)
+
+#check github sebnem github page 
+
+#packages-> 
+
+#download the shape file for South africa, shf zip from data.humandata.org for south africa data. get adminstrative level 0 ie the whole country
+#then add a point pattern data onto the shape file 
+```
+
+```{r}
+leaflet(points) %>% addTiles() %>% addMarkers(popup = place)
+```
+

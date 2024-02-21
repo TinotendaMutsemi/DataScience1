@@ -1,0 +1,58 @@
+```{r}
+#logic
+
+#list of doors
+
+
+```
+
+```{r}
+
+monty_hall <- function(){
+  #create list of doors 
+  doors <- 1:3
+  #populate the doors with goats
+  prices <- c("car", "goat", "goat")
+  door_prices <- sample(prices, 3)
+  #find positions containing goats
+  goat_doors <- which(door_prices == "goat")
+  
+  #player chooses a door
+  player_choice <- sample.int(n = 3, size = 1)
+  
+  #doors not chosen by player
+  remaining_doors <- doors[doors != player_choice]
+  
+  #host opens one of goat doors
+  host_open <- goat_doors[goat_doors != player_choice]
+  if (length(host_open) != 1){
+    host_open <- sample(host_open, 1)
+  }
+  
+  doors2 <- c(player_choice, remaining_doors[remaining_doors != host_open])
+  player_choice2 <- sample(doors2, 1)
+  if (player_choice2 %in% goat_doors){
+    player_price = "goat"
+  } else{
+    player_price = "car"
+  }
+  return(player_price)
+}
+
+```
+
+```{r}
+price_vector = vector()
+game_number = 1
+while(game_number <= 10000){
+  price_vector <- c(price_vector, monty_hall())
+  game_number = game_number + 1
+}
+price_distrubution <- table(price_vector)/length(price_vector)
+price_distrubution
+```
+
+```{r}
+
+```
+

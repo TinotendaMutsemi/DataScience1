@@ -1,0 +1,90 @@
+```{r}
+setwd("C:/Users/mutse/OneDrive/Desktop/UCT/Courses/Computing/scripts")
+
+
+```
+
+
+
+
+```{r}
+#sample from normal distrubution
+set.seed(2)
+```
+
+
+
+```{r}
+max = c()
+for (i in [1: 10000])
+  {x = rnorm(5)
+  sample_max = max(x)}
+  max.append(sample_max)
+```
+
+
+
+```{r}
+#class solution
+nsim <- 10000 # number of simulations
+nmax <- numeric(nsim)
+for(i in 1:nsim) {
+vals <- rnorm(5)
+nmax[i] <- max(vals)
+}
+par(mfrow=c(1,2), pty="s")
+hist(nmax, main = "", xlab = "max of 10 N(0,1) values",
+prob=TRUE)
+plot(density(nmax), main = "",
+xlab = "max of 10 N(0,1) values")
+
+```
+
+```{r}
+#Prac 7
+
+nsims <- 25000 # number of simulations
+sample_sizes <- c(5, 10, 50, 100, 500, 1000) 
+sd_means <- numeric(length(sample_sizes))
+nsims_means <- matrix(0, nsims, length(sample_sizes), byrow = TRUE)
+
+rate <- 1
+j=0
+for(sample_size in sample_sizes){
+  j <- j+1
+  means <- numeric(nsims)
+  for(i in 1:nsim) {
+  vals <- rexp(sample_size, rate)
+  means[i] <- sum(vals)/length(vals)
+  }
+#  sd_means <- sd(means)
+  nsims_means[,j] <- means
+  
+}
+
+```
+
+
+```{r}
+par(mfrow=c(1,6), pty="s")
+for(sim_mean in nsims_means){
+  hist(sim_mean, main = "", xlab = "means E(1) values",prob=TRUE)
+}
+
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+
+
+```
+```{r}
+
+
+```

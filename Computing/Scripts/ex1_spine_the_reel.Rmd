@@ -1,0 +1,59 @@
+```{r}
+#create a reel vector with ordered spots
+#create a spin vector by randomly sampling from 1 to length of the reel
+#find the index of the spin result and use it it see what you have won
+#create a payout table for each of the 6 possiable wins
+#find the payout for each spin
+# store in a dataframe
+```
+
+```{r}
+rm(list = ls())
+```
+
+```{r}
+
+
+spin_game <- function(){
+  #create reel
+  reel <- c(rep("heart", times = 7), 
+            rep("diamond", times = 5),
+            rep("spade", times = 3),
+            rep("club", times = 6),
+            rep("joker", times = 9),
+            rep("ca", times = 20))
+  
+  #create a spin
+  spin <- sample(reel,1)
+  
+  #create matrix for payouts
+  items <- c('heart', 'diamond', 'spade', 'club', 'joker', 'ca')
+  payouts <- c(2,2.5,8,4,2.5,0)
+  
+  #get index of item from spin
+  payout <- payouts[which(items == spin)]
+  
+  return(payout)
+}
+
+```
+```{r}
+nset <- 10
+nsims <- 20
+games <- replicate(nsims, replicate(nset, spin_game()))
+
+```
+
+
+```{r}
+apply(1,sum())
+```
+
+
+
+
+
+
+
+
+
