@@ -1,0 +1,94 @@
+```{r}
+#set the working directory
+setwd('C:\\Users\\mutse\\OneDrive\\Desktop\\UCT\\DataScience1\\Multivariate Analysis\\Scripts\\CA2')
+```
+
+```{r}
+#load the libraries
+library(corrplot)
+library(psych)
+```
+
+```{r}
+#read txt file
+X <- read.table("CA2.txt", header = TRUE)
+# head(X)
+#make X a matrix
+X <- as.matrix(X)
+head(X)
+```
+
+
+```{r}
+#For each approximation Xk of rank k, 
+
+XtrX <- t(X) %*% X
+
+#calculate the SVD of XtrX
+svdX <- svd(X)
+
+#find the best rank k approximation for k = 1 to num of columns in X
+m <- dim(X)[2]
+#create a list of 12 b matrices
+B <- list()
+
+for (k in 1:m) {
+  b <- prod(svdX$d[1:k]) * (svdX$u[, 1:k] %*% t(svdX$v[, 1:k]))
+  B[[k]] <- b
+}
+
+```
+
+
+```{r}
+#calculate the error for each rank k approximation
+error <- list()
+for (k in 1:length(B)) {
+  error_k <- X - B[[k]]
+  error[[k]] <- error_k
+}
+```
+
+
+```{r}
+#Qtn 1: we find mean error vector error3
+error3 <- error[[3]]
+#mean for each column
+mean_error3 <- colMeans(error3)
+mean_error3
+```
+
+
+
+```{r}
+#Qtn 2
+std_error3 <- scale(error3)
+```
+
+```{r}
+hist(std_error3)
+```
+```{r}
+corrplot(cor(X))
+corrplot(cor(B[[3]]))
+#the lower the rank, the less the correlation is preserved
+```
+
+```{r}
+
+frob_vec <- c()
+for (i in 1: 12){
+  frob <- sqrt(tr(error[[i]]%*%t(error[[i]])))[1]
+  frob_vec <- rbind(frob_vec, frob)
+}
+
+```
+
+```{r}
+frob_vec <- cbind(frob_vec, seq(1,12))
+plot(frob_vec[,2], frob_vec[,1], type = "l", xlab = "Rank", ylab = "Frobenius Norm")
+
+```
+
+
+

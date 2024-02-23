@@ -1,0 +1,134 @@
+---
+title: 'Multivariate Analysis: Continuous Assessment 2'
+author: "Molly Ryan (RYNERI002) Tinotenda Mutsemi (MTSTIN007)"
+date: "`r Sys.Date()`"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r, echo=F}
+#set the working directory
+#setwd('C:\\Users\\mutse\\OneDrive\\Desktop\\UCT\\DataScience1\\Multivariate Analysis\\Scripts\\CA2')
+```
+
+```{r, echo=F, results='hide', message=FALSE, warning=FALSE}
+#load the libraries
+invisible(library(corrplot))
+library(psych)
+```
+
+Singular Value Decomposition was used to find lower rank approximations of X, ranging from rank 12 (full rank) down to rank 1. Then the error for each approximation of X was calculated.
+
+
+```{r, echo=F, results = F}
+#read txt file
+X <- read.table("CA2.txt", header = TRUE)
+# head(X)
+#make X a matrix
+X <- as.matrix(X)
+head(X)
+```
+
+
+```{r, echo=F}
+#For each approximation Xk of rank k, 
+
+XtrX <- t(X) %*% X
+
+#calculate the SVD of XtrX
+svdX <- svd(X)
+
+#find the best rank k approximation for k = 1 to num of columns in X
+m <- dim(X)[2]
+#create a list of 12 b matrices
+B <- list()
+
+
+B[[1]] <- prod(svdX$d[1]) * (svdX$u[, 1] %*% t(svdX$v[, 1]))
+colnames(B[[1]]) <- colnames(X)
+for (k in 2:m) {
+  b<-svdX$u[,1:k] %*% diag(svdX$d[1:k]) %*% t(svdX$v[,1:k])
+  B[[k]] <- b
+  colnames(B[[k]]) <- colnames(X)
+}
+
+```
+
+
+```{r, echo=F}
+#calculate the error for each rank k approximation
+error <- list()
+for (k in 1:length(B)) {
+  error_k <- X - B[[k]]
+  error[[k]] <- error_k
+}
+```
+
+The mean vector of the approximation error for the rank 3 approximation can be seen below.
+
+
+```{r, echo=F, results='asis'}
+#Qtn 1: we find mean error vector error3
+error3 <- error[[3]]
+#mean for each column
+mean_error3 <- colMeans(error3)
+cat("$$ Δ_3 = \\begin{pmatrix}", paste(round(as.vector(mean_error3),2), collapse = " \\\\ "), "\\end{pmatrix} $$", sep = " ")
+
+```
+
+
+```{r, echo=F, results='hide'}
+#Qtn 2
+std_error3 <- scale(error3)
+```
+
+
+A histogram plotting the standardised error for the rank 3 approximation matrix follows. It can be seen that the error is approximately normally distributed.
+
+```{r, echo=F, fig.align='center'}
+hist(std_error3, main="Histogram showing the standardised error of the rank 3 approximation", xlab="Standardised Error")
+```
+
+
+
+
+When comparing the correlations between the variables in X to the correlations between the variables in the rank 3 approximation, a clear difference can be seen. This is clear in the heatmaps plotted below. Indeed, it appears that the lower the rank of the approximation, the less correlation is preserved.
+
+
+
+```{r, echo=F, fig.align='center'}
+par(mfrow=c(1,2))
+suppressWarnings({
+  corrplot(cor(X), t1.col = "black", title="Correlation heat map for \n the full   matrix X", mar=c(1,1,5,1))
+  corrplot(cor(B[[3]]), t1.col = "black", title="Correlation heat map for \n the rank 3 approximation matrix", mar=c(1,1,5,1))
+})
+#the lower the rank, the less the correlation is preserved
+```
+
+```{r, echo=F}
+
+frob_vec <- c()
+for (i in 1: 12){
+  frob <- norm(error[[i]], type = "F")
+  # frob <- sqrt(tr(error[[i]]%*%t(error[[i]])))[1]
+  frob_vec <- rbind(frob_vec, frob)
+}
+#covert to numeric
+frob_vec <- as.numeric(frob_vec)
+
+```
+
+Lastly, the Frobenius Norm of the matrix can be seen to decrease with increasing rank (k). This relationship is plotted below.
+
+```{r, echo=F, fig.align='center'}
+frob_vec <- cbind(frob_vec, seq(1,12))
+plot(frob_vec[,2], frob_vec[,1], type = "l", xlab = "Rank", ylab = "Frobenius Norm")
+
+```
+
+```{r, echo=F}
+```
+
+
+
