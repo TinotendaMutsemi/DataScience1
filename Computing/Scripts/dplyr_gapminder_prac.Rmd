@@ -1,0 +1,45 @@
+```{r}
+library(gapminder)
+library(dplyr)
+```
+
+```{r}
+names(gapminder)
+```
+
+```{r}
+#select cases with life exp > 60
+filter(gapminder, lifeExp > 60)
+```
+
+
+```{r}
+#select cases from SA, year > 1980, calculate: avg life exp, avg gdp per cap income
+filter(gapminder, country == 'South Africa', year > 1980) |> summarise(avg_lifeExp = mean(lifeExp), avg_gdpPercap = mean(gdpPercap))
+```
+
+```{r}
+gapminder |> group_by(country) |> summarise(max_lifeExp = max(lifeExp),
+                                            min_lifeExp = min(lifeExp),
+                                            avg_lifeExp = mean(lifeExp),
+                                            num_obs = length(country))
+```
+```{r}
+#extract life exp in 2007 for all countries 
+filter(gapminder, year == 2007) |> select(country, lifeExp) |> 
+```
+
+```{r}
+#extract avg lifeExp, and gdpPercap for each continent
+gapminder |> select(continent, lifeExp, gdpPercap, year) |> filter(year == 2007) |> group_by(continent) |> summarise(avg_lifeExp = mean(lifeExp), avg_gdpPercap = mean(gdpPercap))
+```
+
+
+
+
+
+
+
+
+
+

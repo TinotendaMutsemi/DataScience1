@@ -1,0 +1,42 @@
+```{r}
+library(nycflights13)
+library(dplyr)
+```
+```{r}
+dim(flights)
+head(flights)
+names(flights)
+```
+
+
+```{r}
+#operations on rows: arrange, distinct , filter
+
+#filter flights with depature delay greater than 30 min
+filter(flights, dep_delay > 30)
+
+#select distinct rows of origin and dest
+distinct(flights, origin, dest)
+```
+
+
+
+```{r}
+#operations on columns: mutate, select, rename, relocate
+
+#select columns 
+select(flights, distance, arr_delay)
+select(flights, !year:day)
+
+
+rename(flights, new.arr.delay = arr_delay)
+
+mutate(flights,
+  gain = arr_delay - dep_delay,
+  speed = distance / air_time * 60)
+```
+
+
+
+
+

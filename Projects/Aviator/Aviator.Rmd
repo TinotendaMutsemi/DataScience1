@@ -8,6 +8,83 @@ output:
 ---
 
 ```{r}
+#read csv 
+df_odds <- read.csv("df_odds.csv")
 
+#take date of 7
+df_odds <- df_odds[df_odds$date == 7,]
+
+#head of the data
+head(df_odds)
+
+```
+
+
+```{r}
+#summary of the data
+summary(df_odds)
+```
+```{r}
+#get the unique times 
+unique(df_odds$time)
+```
+
+```{r}
+```
+
+
+
+```{r}
+#scatter plot odds and time
+plot(df_odds$odds)
+hist(df_odds$odds, prob = TRUE)
+curve(dexp(x, rate = 0.1575496), col='red', add = TRUE)
+
+```
+
+```{r}
+#get only odds less than 50
+df_odds_n <- df_odds[df_odds$odds < 20,]
+plot(df_odds_n$odds)
+hist(df_odds_n$odds, prob = TRUE)
+curve(dexp(x, rate = 0.3554041), col='red', add = TRUE)
+
+```
+
+```{r}
+logl <- function(lambda, xData){
+  loglpr <- length(xData)*log(lambda) - lambda*sum(xData) 
+  return(-loglpr)
+}
+
+optim(par = 5, 
+      fn = logl, 
+      xData= df_odds_n$odds, 
+      method = 'Brent', lower = 0, upper = 5,
+      )
+optim
+```
+
+
+```{r}
+oddsData <- 1/df_odds$odds
+
+#create loglikelihood function
+logLikelihood <- function(oddsData, p){
+  sum(log(p*(oddsData) + (1-p)))
+}
+
+#find the maximum likelihood estimate
+mle <- optim(par = 0.5, fn = logLikelihood, oddsData = oddsData, lower = 0.0001, upper = 1)
+
+#display the result
+mle
+```
+
+
+```{r}
+```
+
+```{r}
 ```
 
