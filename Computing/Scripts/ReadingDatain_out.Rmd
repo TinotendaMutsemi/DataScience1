@@ -1,0 +1,409 @@
+---
+title: "Introduction: Statistical Computing with R"
+subtitle: "Reading Data in and out of R"
+author: "Allan Clark (adapted from B. Erni slides)"
+institute: "Department of Statistical Sciences, University of Cape Twon"
+date:  "`r format(Sys.time(), '%d %B %Y')`"
+output: beamer_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Contents
+
+- How to read in different kinds of data.  
+- How to store results. 
+- Work through '\textcolor{red}{ReadWrite.r}'
+\vspace{.5cm}
+
+- NOTE: When copying the scripts below, ensure that the data files are in your working directory.
+- If you don't have a particular library installed, you might encounter an error when using 'library(name of library)'. In this case, you will have to first install the package. i.e. 'install.package("name of package", dependencies=TRUE)'.
+
+
+## Reading text data 
+
+An extract of the data (fuel-frame.txt) that will be read in: 
+
+
+\textcolor{red}{row.names,Weight,Disp.,Mileage,Fuel,Type  
+Eagle.Summit.4,2560,.97,33,3.030303,Small  
+Ford.Escort.4,2345,114,33,3.030303,Small  
+Ford.Festiva.4,1845,.81,37,2.702703,Small  
+Honda.Civic.4,2260,.91,32,3.125000,Small  
+Mazda.Protege.4,2440,113,32,3.125000,Small  
+Mercury.Tracer.4,2285,.97,26,3.846154,Small  
+Nissan.Sentra.4,2275,.97,33,3.030303,Small  
+Pontiac.LeMans.4,2350,.98,28,3.571429,Small  
+Subaru.Loyale.4,2295,109,25,4.000000,Small  
+Subaru.Justy.3,1900,.73,34,2.941176,Small  }
+
+- Notice that the data is comma separated.  
+- Variables have column names.  
+- 'read.table' function can be used to import data.
+
+## Reading text data 
+
+```{r, eval=FALSE, echo=TRUE}
+#read in the file using read.table
+#only the first 6 rows are displayed here
+
+head(read.table("fuel-frame.txt", header=TRUE, sep=","))
+```
+
+\scriptsize
+```{r, echo=F, eval=TRUE}
+
+setwd("/Users/allanclark/Documents/AllanClark/Stats/Courses/UCT_Stats_Courses/HonoursStats/StatisticalComputing/StatisticalComputing2021/Day 2")
+
+head(read.table("fuel-frame.txt", header=TRUE, sep=",")[1:10,])
+```
+
+## Reading text data 
+
+```{r, eval=FALSE, echo=TRUE}
+ff <- read.table("fuel-frame.txt", header=TRUE, sep=",")
+```
+
+- "fuel-frame.txt” : the name of the file imported.  
+- “header=T” : or “header=TRUE” : you do have column names, so read them in as well  
+- “sep= ” : how is the data separated?
+- Here the elements are separated by commmas.
+
+## Reading *.csv data 
+
+```{r, eval=FALSE, echo=TRUE}
+ff_csv <- read.table("fuel-frame.csv", 
+                     header=TRUE, sep=",")
+
+head(ff_csv) #look at 'top' of ff_csv
+```
+
+\scriptsize
+```{r, eval=TRUE, echo=FALSE}
+ff_csv <- read.table("fuel-frame.csv", header=TRUE, sep=",")
+
+head(ff_csv) #look at 'top' of ff_csv
+```
+
+\normalsize
+```{r, eval=FALSE, echo=TRUE}
+colnames(ff_csv) #the column names
+```
+
+\scriptsize
+```{r, eval=TRUE, echo=FALSE}
+colnames(ff_csv) #the column names
+```
+
+## Reading *.csv data (with missing values) 
+
+Lets read in data that contains \textcolor{red}{missing values}! These are denoted as NA. \vspace{.5cm}
+
+```{r, eval=FALSE, echo=T}
+ff2 <- read.table("fuel-frame2.csv", header=TRUE, 
+                  sep=",")
+head(ff2)
+```
+
+\scriptsize
+
+```{r, eval=TRUE, echo=FALSE}
+ff2 <- read.table("fuel-frame2.csv", header=TRUE, sep=",")
+head(ff2)
+```
+
+
+## Reading *.csv data (without column names) 
+
+Two different methods of adding column names to data!
+
+
+Method 1
+```{r, eval=FALSE, echo=TRUE}
+fuel<-read.csv("fuel-frame3.csv", header=FALSE,
+               
+               col.names=c("row.names","Weight",
+                           "Disp.","Mileage",
+                           "Fuel","Type"), sep=",")
+```
+
+Method 2
+```{r, eval=FALSE, echo=TRUE}
+fuel<-read.csv("fuel-frame3.csv", sep=",", 
+               header=FALSE)
+
+names(fuel)=c("row.names","Weight","Disp.","Mileage",
+              "Fuel","Type")
+```
+
+
+## Reading *.csv data (without column names) 
+
+```{r, eval=FALSE, echo=TRUE}
+fuel<-read.csv("fuel-frame3.csv", sep=",", header=FALSE)
+```
+
+\scriptsize
+```{r, eval=TRUE, echo=FALSE}
+fuel<-read.csv("fuel-frame3.csv", sep=",", header=FALSE)
+head(fuel)
+```
+
+\normalsize
+
+```{r, eval=FALSE, echo=TRUE}
+names(fuel)=c("row.names","Weight","Disp.","Mileage",
+              "Fuel","Type")
+```
+
+\scriptsize
+```{r, eval=TRUE, echo=FALSE}
+names(fuel)=c("row.names","Weight","Disp.","Mileage",
+              "Fuel","Type")
+head(fuel)
+```
+
+## Problems you will/could encounter
+
+- can't find file - ensure that the file being read in is in your working directory!
+- number of elements in row x is wrong.
+- converted variables to wrong type.
+- **0 or missing value?**
+- and many others.
+
+## Create some objects in workspace
+
+```{r, echo = TRUE, eval = TRUE}
+#lists the elements in your workspace
+ls()
+
+
+#be careful before you run the next line!!!
+#remove all of the objects in the workspace
+rm(list=ls()) 
+ls() 
+
+X <- matrix(rnorm(10000), nrow = 100); y <- 3:50
+
+library(gapminder); data(gapminder)
+
+ls()
+```
+
+
+## Writing data to a file 
+
+Write data frame to a .txt/.csv (comma separated) file. 
+
+```{r, echo = TRUE, eval = FALSE}
+write.table(gapminder, file = "f1.txt")   
+write.csv(gapminder, file = "f1.csv")
+```
+
+The csv file looks like this! 
+
+\scriptsize
+\textcolor{red}{,"country","continent","year","lifeExp","pop","gdpPercap"  
+1,"Afghanistan","Asia",1952,28.801,8425333,779.4453145  
+2,"Afghanistan","Asia",1957,30.332,9240934,820.8530296  
+3,"Afghanistan","Asia",1962,31.997,10267083,853.10071  
+4,"Afghanistan","Asia",1967,34.02,11537966,836.1971382  
+5,"Afghanistan","Asia",1972,36.088,13079460,739.9811058  
+6,"Afghanistan","Asia",1977,38.438,14880372,786.11336  
+7,"Afghanistan","Asia",1982,39.854,12881816,978.0114388  
+8,"Afghanistan","Asia",1987,40.822,13867957,852.3959448  
+9,"Afghanistan","Asia",1992,41.674,16317921,649.3413952  
+10,"Afghanistan","Asia",1997,41.763,22227415,635.341351}
+
+## Dumping output in a file
+... instead of to the console. You can send outputs to an external txt file. \vspace{.5cm}
+
+```{r, echo = TRUE, eval = FALSE}
+sink("Routput.txt")
+rnorm(10)
+plot(rnorm(10))    # only text, not plots
+sink()     # switch back to console
+```
+
+## Saving your R data objects: Save/Load Workspace
+
+```{r, echo = TRUE, eval = FALSE}
+save(X, y, file = "mystuff.RData")
+
+save.image()  # saves current workspace into .RData
+
+load("mystuff.RData")   # load into workspace
+```
+
+Same R objects as before.
+
+## Importing .xls, .xlsx data
+
+1. In Excel copy data to clipboard, in R type 
+\textcolor{red}{`df <- read.table("clipboard", header = TRUE)`}. Not good, because not reproducible. 
+
+2. Save .xls file as a tab delimited .txt or .csv file, in R use one of 
+
+```{r, echo = TRUE, eval = FALSE}
+df <- read.table("file.txt", header = TRUE, sep = "\t")
+df <- read.table("file.txt", header = TRUE, sep = ",")
+df <- read.csv("file.csv")
+```
+
+## Importing .xls, .xlsx data
+
+3. Use the R package `xlsx`. \vspace{.5cm}
+
+```{r, echo = TRUE, eval = FALSE}
+library(xlsx)
+
+df <- read.xlsx("CO2.xlsx", sheetIndex = 1)
+head(df)
+dim(df)
+```
+
+## Importing .xls, .xlsx data
+
+4. Use the R package 'XLConnect'. \vspace{.5cm}
+
+\small
+```{r, echo = TRUE, eval = TRUE}
+library(XLConnect) #install the XLConnect
+df <- readWorksheetFromFile("CO2.xlsx", sheet = 1)
+head(df)
+dim(df)
+```
+
+
+## Including path name (files in a different working directory)
+
+- Know your working directory. 
+
+- . is for current working directory
+- paste0 pastes 2 (or more) character strings into 1 string, without space
+
+```{r, echo = TRUE, eval = FALSE}
+getwd()   # what is my working directory
+
+filePath <- "~/Dropbox/TEACHING/
+Honours StatisticalComputing/R/2017"
+
+df2 <- readWorksheetFromFile(paste0(filePath, 
+                                    "/Data/CO2b.xlsx"), 
+                             sheet = 1)
+head(df2)
+dim(df2)
+```
+
+## Including path name (files in a different working directory)
+
+```{r, echo = TRUE, eval = TRUE}
+#getwd()   # what is my working directory
+
+## relative to current working directory
+df1 <- readWorksheetFromFile("./CO2b.xlsx", 
+                             sheet = 1)
+head(df1)
+dim(df1)
+```
+
+## Variable names
+
+Sometimes you need to specify, or rename variables. \vspace{.5cm}
+
+```{r, echo = TRUE, eval = T}
+air <- read.table("air.txt")  
+head(air)
+```
+
+## Variable names
+
+Sometimes you need to specify, or rename variables
+
+```{r, echo = TRUE, eval = T}
+vars <- names(airquality)    # or type in by hand
+vars <- c("Ozone", "Solar.R", "Wind", "Temp", "Month", 
+          "Day")
+
+names(air) <- vars
+head(air)        
+```
+
+## Data from data base (SQLite)
+\small 
+```{r, echo = TRUE, eval = TRUE}
+library(DBI)
+
+mydb <- dbConnect(RSQLite::SQLite(), "my-db.sqlite")
+dbListTables(mydb)
+
+## Queries
+dbGetQuery(mydb, 'SELECT * FROM airquality')
+
+#read through for when you need to use it
+#vignette("RSQLite") 
+```
+
+other packages: library(RODBC)
+
+
+## Data from web
+```{r, echo = TRUE, eval = TRUE}
+URL <- "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv"
+
+#too long for the line!
+#"http://earthquake.usgs.gov/earthquakes/feed/
+#v1.0/summary/all_month.csv"
+
+Earthquake_30Days <- read.table(URL, sep = ",", 
+                                header = T)
+names(Earthquake_30Days)
+#head(Earthquake_30Days)
+```
+
+## Common data import problems
+
+TIP: Don't change the files, use R to sort out any problems. Advantage: you will have code to document EXACTLY what you did.
+
+1. Type conversions
+ tries to guess data type of variable/column
+ 
+ as.is, colClasses in read functions. 
+ 
+2. special characters/separators (;, spaces)
+- look at the data file
+
+3. files with blanks instead of missing values
+
+## Prac 
+
+Check that you get all of the above to run, and update with your own comments. 
+
+Read the following data into R. Each time check that R has done the right thing. Leave the data as original as possible.
+
+1. counts.xlsx   (on Vula)
+2. Tortoise data.xls, sheet 'Tortoise measurements'  (on Vula)  
+3. Globular clusters: <http://www.physics.mcmaster.ca/~harris/GCS_table.txt>
+4. Large-scale climatic index (MEI): <https://www.esrl.noaa.gov/psd/enso/mei/table.html>
+5. Voice Data from Singing the Vowel 'ooh': <http://www.statsci.org/data/general/ooh.txt> 
+6. Air quality data: air2.dat (on Vula)
+7. wader counts.xls (on Vula) 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
