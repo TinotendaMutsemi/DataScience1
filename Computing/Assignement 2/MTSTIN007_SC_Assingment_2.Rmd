@@ -1,0 +1,89 @@
+```{r}
+library(dplyr)
+library(ggplot2)
+library(xlsx)
+```
+
+
+```{r}
+#read data
+lex_raw <- read.csv("lex.csv")
+gdp_pcap_raw <- read.csv("gdp_pcap.csv")
+region_raw <- read.xlsx("Data Geographies - v2 - by Gapminder.xlsx", sheetIndex = 2)
+population_raw <- read.xlsx("GM-Population - Dataset - v6.xlsx", sheetIndex = 4)
+```
+
+
+
+
+
+```{r}
+#Qtn 1a
+#data cleaning and selcting required data
+lex_2019 <- select(lex_raw, country, X2019)
+
+gdp_pcap_2019 <- select(gdp_pcap_raw, country, X2019)
+
+#region data
+#rename region col names
+lookup <- c(country = "name",
+            region = "four_regions")
+region <- select(region_raw, name, four_regions) |> rename(all_of(lookup))
+
+
+#population data
+#deselect col
+population_raw <- select(population_raw, -geo)
+#rename cols
+lookup <- c(country = "name",
+            year = "time",
+            population = "Population")
+
+population_raw <- rename(population_raw, all_of(lookup))
+
+#select 2019 population
+population_2019 <- filter(population_raw, year == 2019)
+```
+
+```{r}
+#merge and clean data frames
+lex_gdp_2019 <- full_join(lex_2019, gdp_pcap_2019, by = join_by(country))
+lex_gdp_region_2019 <- full_join(lex_gdp_2019, region, by = join_by(country))
+
+#rename cols of new df
+lookup <- c(lex = "X2019.x", 
+            gdp_pcap = "X2019.y")
+lex_gdp_region_2019 <- rename(lex_gdp_region_2019, all_of(lookup))
+
+```
+```{r}
+#scatter plot with ggplot
+ggplot(data = lex_gdp_region_2019, mapping = aes(x = gdp_pcap, y = lex,
+             colour = region,
+             size = population)) +
+  geom_point()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

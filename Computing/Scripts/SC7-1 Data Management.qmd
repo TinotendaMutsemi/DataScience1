@@ -1,0 +1,340 @@
+---
+title: "Statistical Computing with R"
+subtitle: "Part 7: Transform, Tidy and Communicate"
+# subtitle: "Part 7: Strings, Regular Expressions, Scoping, Data Wrangling"
+author: "Birgit Erni "
+institute: "Department of Statistical Sciences, University of Cape Twon"
+date:  "`r format(Sys.time(), '%d %B %Y')`"
+format: revealjs
+editor: visual
+css: style.css
+title-slide-attributes: 
+  data-background-image: statslogo.jpg, UCTNewCrest.JPG
+  data-background-size: 15%, 15%
+  data-background-position: 0% 95%, 95% 95%
+
+execute: 
+  echo: true
+  eval: false
+  warning: false
+  message: false
+---
+
+## Data Science
+
+![](base.png)
+
+R for Data Science <https://r4ds.hadley.nz/>
+
+::: notes
+Speaker notes go here.
+:::
+
+-   Statistical Computing in Data Science
+
+## Today: Tidy, Transform, Communicate
+
+-   Quarto (communicate)
+-   `dplyr` and `tidyverse` (tidy and transform)
+-   reshaping and merging data frames (import, tidy, transform)
+-   strings and regular expressions
+-   dates <!-- - scope of variables -->
+
+## Tidy Data
+
+![](tidy-1.png)
+
+-   observations in rows
+-   variables in columns
+-   values in cells
+
+[tidyverse]{style="color:red"}: suit of packages for tidy data
+
+```{r}
+library(tidyverse)
+```
+
+## `dplyr` {.smaller}
+
+-   d for data frame
+-   ply for '..ply' type functions (e.g. apply, tapply, ...)
+-   r for R
+-   pronounced: 'dee-ply-r'
+
+`dplyr` is part of the *tidyverse*, a group of packages that helps to work with tidy data, and provides high-level functions that can deal with such data in a consistent way.
+
+`dplyr` works with *verbs* to manipulate data frames:
+
+-   `filter()` to select rows
+-   `select()` to select variables
+-   `mutate()` to create new variables
+-   `rename()`
+-   `sample_n()` to sample rows at random
+-   `arrange()` arrange rows
+
+## Example
+
+-   flights that departed New York City in 2013 (`flights` in library `nycflights13`)
+
+```{r flights}
+#| eval: true
+#| output-location: slide
+#| out-width: '50%'
+
+library(nycflights13)
+library(dplyr)
+
+dim(flights)
+head(flights)
+names(flights)
+View(flights)
+```
+
+
+tibble is a special kind of data frame, better for large data sets
+
+## Operations on Rows
+
+-   `arrange` -- sort rows desc(dep_times) distinct
+-   `distinct`
+-   `filter`
+
+
+
+## filter(): subset rows
+
+-   select rows that meet condition
+
+```{r filter, eval = FALSE, echo = TRUE}
+filter(flights, month == 1, day == 1)  # January 1st
+filter(flights, month == 1 | month == 2)  # Jan or Feb
+```
+
+**Exercise:** 
+- Select all flights with departure delay of more than 30 minutes.
+- Find the flight with the longest (maximum) departure delay.
+
+
+## Select distinct rows
+
+- ind all distinct combinations of origin-destination
+
+```{r distinct}
+distinct(flights, origin, dest)
+```
+
+**Exercise:**
+- find the 5 destinations that are furthest from NY by sorting destination distance in descending order (`desc()`)
+
+
+## Operations on Columns
+
+-   mutate
+-   select
+-   rename
+-   relocate
+
+## `select()`
+
+-   select columns / variables.
+
+```{r select}
+select(flights, distance, arr_delay)
+select(flights, !year:day)
+```
+
+
+## Rename variables: `rename()`
+
+Rename variable `arr_delay` to `new.arr.delay`
+
+```{r rename}
+rename(flights, new.arr.delay = arr_delay)
+head(flights)
+```
+
+**Exercise:** Rename the variable as in the original data frame.
+
+## Add new columns: `mutate()`
+
+-   define / calculate new variables (added as columns to the data frame), usually derived from other columns / variables.
+
+```{r mutate}
+mutate(flights,
+  gain = arr_delay - dep_delay,
+  speed = distance / air_time * 60)
+```
+
+## Randomly sample rows
+
+-   `sample_n()` and `sample_frac()`: choose a random sample of $n$ rows, or select a proportion of rows randomly from the original data set.
+
+-   useful for bootstrapping or cross-validation
+
+```{r sample}
+sample_n(flights, 10, replace = TRUE)
+sample_frac(flights, 0.01)
+```
+
+
+## summarise()
+
+-   calculate summary statistics (several) for columns in the data frame
+
+```{r summarise}
+summarise(flights, mean(dep_delay), mean(arr_delay))
+```
+
+**Exercise:** Fix the function so that it does not return `NA`s.
+
+## Operations on Groups (grouped rows)
+
+-   `group_by()`
+
+-   `summarize`
+
+-   splits data (rows) into groups, the second argument is a grouping (factor) variable
+
+-   often followed by `summarise`, which now applies the function to every group.
+
+```{r}
+#| eval: true
+#| output-location: slide
+
+dest <- group_by(flights, dest)
+summarise(dest, mean(arr_delay, na.rm = TRUE), 
+          dep.delay = mean(dep_delay))
+```
+
+## Pipe operator `\>`
+
+-   takes object on the left-hand-side and pipes it into the function call on the right-hand-side -- literally, drops it in as the first argument.
+
+```{r pipe}
+flights |> head(10)
+```
+
+**Exercise:** Use the pipe operator to select only rows with origin JFK, create a variable speed = distance / air_time, and calculate average speed.
+
+`x |> f(y)` is equivalent to `f(x, y)`
+
+`x |> f(y) |> g(z)` is equivalent to `g(f(x, y), z)`
+
+like a `then`
+
+```{r}
+flights |>
+  filter(dest == "IAH") |> 
+  group_by(year, month, day) |> 
+  summarize(arr_delay = mean(arr_delay, na.rm = TRUE))
+```
+
+```{r}
+#| echo: false
+#| eval: false
+#| 
+flights %>%
+  filter(dest == "IAH") %>% 
+  group_by(year, month, day) %>% 
+  summarize(arr_delay = mean(arr_delay, na.rm = TRUE))
+```
+
+## Prac: `dplyr` {.smaller}
+
+Use the `dplyr` functions on the `gapminder` data to:
+
+1.  select cases with life expectancy \> 60
+2.  select cases from South Africa, with year \> 1980, and calculate average life expectancy, and average GDP per capita income
+3.  repeat the above with the pipe operator
+4.  group by country, and calculate maximum, minimum, mean life expectancy, and n (number of observations/years)
+5.  extract life expectancy in 2007 for all countries
+6.  2007 average life expectancy and GDP per capita per continent
+
+## Reshape Data Frames {.smaller}
+
+<!-- \url{https://sejdemyr.github.io/r-tutorials/basics/wide-and-long/} -->
+
+Ideally, we want *each variable as a column, each observation in a row*. This is the form of **tidy data**, and many R functions expect tidy data, mainly because R works best with vectors = variables.
+
+Messy data comes in many forms.
+
+**Too wide**:
+
+-   column names are actually values
+-   e.g. year as column name
+-   year is a variable
+
+```{r tidy1}
+library(tidyr)
+table4a
+```
+
+**Too long**:
+
+-   values for one observation in multiple rows
+-   variable names as entries
+
+```{r tidy2}
+table2
+```
+
+## Reshape: Wide to Long
+
+`melt`: To obtain a longer data frame we can `melt` the wide data frame. The `melt` function is from library `reshape2`.
+
+**Example:** Under-5 mortality rate. Year is a variable, and its values should be in a column with names 'year'.
+
+```{r melt}
+library(reshape2)
+
+mort <- read.csv("unicef-u5mr.csv")
+head(mort)   # wide format
+
+mort.melt <- melt(mort, id.vars = "CountryName") 
+mort.melt
+```
+
+Better. Now it is much easier to select rows by year.
+
+## Reshape: Long to Wide
+
+To make data frames wider, we can use the `dcast` function. `dcast` has a `formula` argument. For example, if we want to put the mortality data back into wide format, the formula should specify that we want `CountryName` as rows (x variables), and everything else as columns (y variables), except for `value`, which contains the values.
+
+\small
+
+```{r dcast}
+mort.wide <- dcast(mort.melt, formula = CountryName ~ variable)
+mort.wide
+```
+
+**Exercise:**
+
+Reformat `table2` into wider format such that it has one row per country and year. (`table2` from library `tidyr`.)
+
+```{r dcast2}
+table2
+
+```
+
+## Prac: Reshaping Data {.smaller .scrolling}
+
+
+1.  Read in the rain.csv data (Vula). These are rainfall data for every day for 36 years (1948--1983); in a slightly awkward format.
+
+2.  Rename columns from 1:366. Remember to check at every step that R is doing the right thing. Look at your objects, often (print).
+
+3.  Add a variable 'year' with values 1948-1983.
+
+4.  Reshape the data frame so that your new data frame has variables 'year', 'day' and 'rainfall', a row per day.
+
+5.  If not in the right time order, reorder (`order()`) by time.
+
+6.  Add a `date` (something that R recognizes as a date) variable to this data frame. You may need to do something else first.
+
+7.  Plot the time series. (Always a good check to see if you have the done the right thing.)
+
+8.  Use `dcast` to put back into original wide shape.
+
+-   How many rows does the long rainfall data frame have? (13176)
+
+-   What is the 200th rainfall value in the ordered (by time) data frame? (10)

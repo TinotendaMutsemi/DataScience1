@@ -190,6 +190,8 @@ mean(y_true != y_pred)
 #a
 #remove match id from the regression,
 #statndadize data in the regression
+#use dummy variables for the categorical variables
+
 ipl <- read.csv("Q2dat.csv",
                     colClasses = c(Defending.Result = 'factor',
                                    Time = 'factor',
