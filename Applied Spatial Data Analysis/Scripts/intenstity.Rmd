@@ -1,0 +1,78 @@
+```{r}
+#intenstity: avg num of points within a region
+#calculated: n(X)/A(X) where n(X) is the number of points in the region and A(X) is the area of the region
+
+#homogeneous cs inhomogeneous
+```
+
+```{r}
+library(spatstat)
+
+```
+
+```{r}
+class(swedishpines)
+#planner means its 2D
+swedishpines
+#area = 96*100 = 9600 units sq
+#1unit = 0.1 metres -> 1 unit sq = 0.01 metres sq
+#area = 9600*0.01
+intensity(swedishpines)
+intensity(rescale(swedishpines, 0.01))
+```
+```{r}
+#plot(swedishpines)
+plot(swedishpines)
+
+```
+```{r}
+#homgenous poisson process
+#we test for this using chi square test for normality
+#if data is spatial random, changing the number of regions should not change the number of points in the region
+
+#H0: num points in a region follows a poisson distribution
+#H1: num points in a region does not follow a poisson distribution
+
+swp <- rescale(swedishpines, 0.01)
+q3x3 <- quadrats(swp, nx = 3, ny = 3)
+q3x3 <- quadrats(swp, nx = 3, ny = 3)
+q3x3 <- quadracount(swp, nx = 3, ny = 3)
+plot(swp)
+plot(q3x3, add = TRUE)
+```
+
+
+
+```{r}
+ts <- quadrat.test(swp, nx = 3, ny = 3)
+plot(swp)
+plot(ts, add= TRUE,  col= "red", cex = 1.5, lty = 2)
+#in each regioin we see the number of points, the expected number of points and the chi square statistic (the difference between the observed and expected number of points divided by the expected number of points in each region)
+ts
+
+#we see that the chi square statistic is 0.4, which is not significant, so we fail to reject the null hypothesis
+
+#but for a 10x10 grid we accept the null hypothesis
+#why? chi square test is sensitive to the number of regions
+#small num of quadrats -> you wont find clusters
+
+```
+
+```{r}
+#homework: genarate points in a region and test for homogeneity
+
+```
+```{r}
+#genearte points in a region
+#we use the rpoispp function to generate a poisson point process
+rdata <- rpoispp(lambda = 50)
+qt <- quadrat.test(rdata, nx = 3, ny = 3)
+plot(rdata)
+plot(qt, add= TRUE,  col= "red", cex = 1.5, lty = 2)
+qt
+```
+
+
+```{r}
+```
+

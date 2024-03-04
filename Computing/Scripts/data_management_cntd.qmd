@@ -91,7 +91,13 @@ population.2010 <- select(population, Total.population, X2010)
 co2.2010 <- select(co2, CO2.per.capita, X2010)
 
 #using dplyr to merge
+population.co2.2010 <- full_join(population.2010, co2.2010, join_by(Total.population == CO2.per.capita))
 
+head(population.co2.2010)
+
+population.co2.2010$co2percap <- population.co2.2010$X2010.y / population.co2.2010$X2010.x
+
+population.co2.2010 |> summarise(max(co2percap))
 ```
 
 
