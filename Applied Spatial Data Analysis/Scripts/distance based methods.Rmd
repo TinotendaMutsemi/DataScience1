@@ -1,0 +1,5 @@
+```{r}
+#event is the observed point pattern
+#point is any point in the study region
+```
+

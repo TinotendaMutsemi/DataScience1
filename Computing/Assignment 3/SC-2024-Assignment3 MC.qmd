@@ -1,0 +1,96 @@
+---
+title: |
+  | STA Honours - Statistical Computing 
+  | Assignment 3: Monte Carlo Methods
+subtitle: "Department of Statistical Sciences, University of Cape Town"
+
+date: "today"
+date-format: MMMM YYYY
+format: pdf
+pdf-engine: pdflatex
+editor: visual
+number-sections: true
+---
+
+------------------------------------------------------------------------
+
+## Instructions {.unnumbered}
+
+Complete this assignment in either Rmarkdown or Quarto.
+
+Hand in both the Rmarkdown / Quarto file AND the compiled pdf file.
+
+**Due Date:** 13 March 2024
+
+------------------------------------------------------------------------
+
+## Question 1  {.unnumbered}
+
+\marginpar{\textbf[10]}
+
+
+<!-- Katzgraber -->
+
+<!-- https://uol.de/f/5/inst/physik/ag/compphys/download/Alexander/dpg_school/exercisesKatzgraber.pdf -->
+
+Estimate the following integral using Monte Carlo methods.
+
+$$I = \int_0^1f(x)dx, \qquad \text{where } f(x) = x^n$$
+
+<!-- $$\int_0^1 f(x) dx = \frac{1}{n+1} $$ -->
+
+Let $n = 3$. Find the true value of the integral.
+
+<!-- I = 0.25, k = 2.5 -->
+
+In each case generate $N = 1000$ random points.
+
+a)  uniform
+b)  proposal distribution a power law distribution
+
+$$p(x) = (k+1) x^k$$
+
+Choose $k = 2.5$
+
+To generate random values from $p(x)$ use inverse transform sampling.
+
+c)  importance sampling with the same proposal / candidate distribution as in b).
+
+<!-- $y = x^{1 / (k+1)}$ uniform x -->
+
+Describe your methods. Illustrate your results. Compare your estimates of $I$, briefly comment.
+
+## Question 2: Markov Chain Monte Carlo  {.unnumbered}
+
+\marginpar{\textbf[10]}
+
+
+<!-- Andrieu et al 2003 -->
+
+Use the Metropolis algorithm to sample from
+
+$$ p(x) \propto 0.3 \exp(-0.2x^2) + 0.7 \exp(-0.2(x-10)^2)$$
+
+Simulate N = 5000 values from $p(x)$ using simple MCMC sampling (Metropolis algorithm).
+
+Use $q(x^* | x) \sim N(x, 100)$ as the proposal distribution, where $x^*$ is the candidate value and $x$ is the current value.
+
+Show a histogram of the generated values, superimposed the (normalized) $p(x)$. 
+
+Plot the Markov chain and plot the autocorrelation function of this chain.
+
+Outline your methodology (only one or two sentences per step). 
+
+## Guidelines {.unnumbered}
+
+\marginpar{\textbf[5]}
+
+-   For the purpose of this assignment, show your code (as part of your document).
+
+-   Organize your document into neat sections.
+
+-   Your document should not contain any raw R output. Tables should be neatly formatted, values should appear in a written sentence.
+
+-   Tables and Figures should have captions.
+
+-   Never use `setwd()`, `install.packages()` in Rmarkdown / Quarto files.

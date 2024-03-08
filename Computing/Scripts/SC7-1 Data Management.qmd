@@ -90,7 +90,6 @@ names(flights)
 View(flights)
 ```
 
-
 tibble is a special kind of data frame, better for large data sets
 
 ## Operations on Rows
@@ -98,8 +97,6 @@ tibble is a special kind of data frame, better for large data sets
 -   `arrange` -- sort rows desc(dep_times) distinct
 -   `distinct`
 -   `filter`
-
-
 
 ## filter(): subset rows
 
@@ -110,22 +107,17 @@ filter(flights, month == 1, day == 1)  # January 1st
 filter(flights, month == 1 | month == 2)  # Jan or Feb
 ```
 
-**Exercise:** 
-- Select all flights with departure delay of more than 30 minutes.
-- Find the flight with the longest (maximum) departure delay.
-
+**Exercise:** - Select all flights with departure delay of more than 30 minutes. - Find the flight with the longest (maximum) departure delay.
 
 ## Select distinct rows
 
-- ind all distinct combinations of origin-destination
+-   ind all distinct combinations of origin-destination
 
 ```{r distinct}
 distinct(flights, origin, dest)
 ```
 
-**Exercise:**
-- find the 5 destinations that are furthest from NY by sorting destination distance in descending order (`desc()`)
-
+**Exercise:** - find the 5 destinations that are furthest from NY by sorting destination distance in descending order (`desc()`)
 
 ## Operations on Columns
 
@@ -142,7 +134,6 @@ distinct(flights, origin, dest)
 select(flights, distance, arr_delay)
 select(flights, !year:day)
 ```
-
 
 ## Rename variables: `rename()`
 
@@ -175,7 +166,6 @@ mutate(flights,
 sample_n(flights, 10, replace = TRUE)
 sample_frac(flights, 0.01)
 ```
-
 
 ## summarise()
 
@@ -317,7 +307,6 @@ table2
 ```
 
 ## Prac: Reshaping Data {.smaller .scrolling}
-
 
 1.  Read in the rain.csv data (Vula). These are rainfall data for every day for 36 years (1948--1983); in a slightly awkward format.
 

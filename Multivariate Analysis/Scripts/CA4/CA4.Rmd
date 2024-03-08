@@ -1,0 +1,68 @@
+
+```{r}
+library(dplyr)
+data <- read.csv("CA1.csv")
+
+data2 <- filter(data, TimePeriod == 2)
+head(data2)
+```
+
+
+
+```{r}
+
+par(mfrow = c(2, 2)) 
+
+qqnorm(data2$MaxBreadth, main = "Max Breath")
+qqline(data2$MaxBreadth)
+
+
+qqnorm(data2$BasHeight, main = "Bas Height")
+qqline(data2$BasHeight)
+
+qqnorm(data2$BasLength, main = "Bas Length")
+qqline(data2$BasLength)
+
+qqnorm(data2$NasHeight, main = "Nas Height")
+qqline(data2$NasHeight)
+
+```
+
+
+```{r}
+
+clean_data <- data2[, -5]
+head(clean_data)
+
+S <- cov(clean_data)
+n <- nrow(clean_data)
+
+#1. Calculate squared distances
+d2 <- mahalanobis(clean_data, colMeans(clean_data), cov = S)
+
+#2. Order the squared distances
+d2_ord <- sort(d2)
+
+#3. Graph the pairs
+qcp <- qchisq((1:n - 0.5)/n, ncol(clean_data))
+plot(qcp, d2_ord, main="Chi-square plot", pch = 16, 
+     ylab = '')
+title(ylab = expression(d[(j)]^2), line = 2)
+abline(a = 0, b = 1, col = 'red')
+
+
+```
+
+
+```{r}
+#test for normality
+shapiro.test(data2$MaxBreadth)
+shapiro.test(data2$BasHeight)
+shapiro.test(data2$BasLength)
+shapiro.test(data2$NasHeight)
+
+```
+
+
+
+

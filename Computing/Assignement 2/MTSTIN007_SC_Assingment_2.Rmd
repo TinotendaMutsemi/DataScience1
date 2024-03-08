@@ -1,21 +1,46 @@
 ---
 title: "Statistical Computing"
 subtitle: "Assignment 2"
-author: "Tinotenda Mutsemi"
+author: "Tinotenda Mutsemi (MTSTIN007)"
 date: "2024-03-05"
 output: 
   pdf_document:
     keep_tex: true
+  html_document:
+    keep_md: true
+    
+execute: 
+  echo: true
+  eval: false
+  warning: false
+  message: false
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+```
 
-```{r}
+```{r echo= FALSE}
 library(dplyr)
 library(ggplot2)
 library(xlsx)
 library(reshape2)
+library(knitr)
 ```
 
+## Question 1
+
+First we read in the 4 datasets. The datasets are:
+
+-   lex.csv
+
+-   gdp_pcap.csv
+
+-   Data Geographies - v2 - by Gapminder.xlsx
+
+-   GM-Population - Dataset - v6.xlsx
+
+Below is the code.
 
 ```{r}
 #read data
@@ -25,13 +50,18 @@ region_raw <- read.xlsx("Data Geographies - v2 - by Gapminder.xlsx", sheetIndex 
 population_raw <- read.xlsx("GM-Population - Dataset - v6.xlsx", sheetIndex = 4)
 ```
 
+### Question 1a
 
+Now we will clean data and select the 2019 columns. Before we plot the data, we will merge the datasets and clean the dataframes. Using full join to get all the data from the columns. This creates tidy data for ggplot.
 
+We will plot the life expectancy vs GDP per capita for each country in 2019. The size of the points will be determined by the population of the country. The colour of the points will be determined by the region of the country.
 
+![2019 Life Expectancy vs GDP per Capita](lex_gdp_region_popu_2019.png){width="11.8cm"}
+
+Below is the code for the detailed procedure to generate figure 1.
 
 ```{r}
-#Qtn 1a
-#data cleaning and selcting required data
+#data cleaning and selecting required data
 lex_2019 <- select(lex_raw, country, X2019)
 
 gdp_pcap_2019 <- select(gdp_pcap_raw, country, X2019)
@@ -74,11 +104,10 @@ lex_gdp_region_popu_2019 <- full_join(lex_gdp_region_2019, population_2019, by =
  
 ```
 
-
 ```{r}
 plot_lex_gdp_region_popu_2019 <- na.omit(lex_gdp_region_popu_2019)
 #scatter plot with ggplot
-ggplot(data = plot_lex_gdp_region_popu_2019, mapping = aes(x = gdp_pcap, y = lex,
+plot_lex_gdp_region_popu_2019 <- ggplot(data = plot_lex_gdp_region_popu_2019, mapping = aes(x = gdp_pcap, y = lex,
              colour = region,
              size = population,
              )) +
@@ -93,9 +122,23 @@ ggplot(data = plot_lex_gdp_region_popu_2019, mapping = aes(x = gdp_pcap, y = lex
 
   # title = "GDP per capita vs Life expectancy 2019",
 #save plot
-ggsave("lex_gdp_region_popu_2019.png")
+ggsave("lex_gdp_region_popu_2019.png", plot = plot_lex_gdp_region_popu_2019)
 ```
 
+### Question 1b
+
+We will now calculate the average life expectancy for each region and the number of countries in each region.
+
+| Region   | Ave Life Exp | Num of Countries |
+|----------|--------------|------------------|
+| Europe   | 79.1         | 49               |
+| Americas | 75.2         | 35               |
+| Asia     | 73.0         | 59               |
+| Africa   | 65.9         | 54               |
+
+: Table of average life expectancy and the number of countries in each region.
+
+The code below generated the Table 1.
 
 ```{r}
 #Qtn b
@@ -106,11 +149,17 @@ region_avg_lex <- na.omit(region_avg_lex)
 
 #sort by avg_region_lex descending
 region_avg_lex <- region_avg_lex |> arrange(desc(avg_region_lex))
-region_avg_lex
-
+# region_avg_lex
 
 ```
 
+### Question 1c
+
+We will now calculate the average life expectancy for each region and year. We will then plot the average life expectancy for each region over time.
+
+![Average Life Expectancy for each region.](region_avg_lex.png){width="11.6cm"}
+
+The code below generated Figure 2.
 
 ```{r}
 #Qtn c
@@ -133,7 +182,7 @@ region_avg_lex$year <- as.numeric(region_avg_lex$year)
 
 ```{r}
 plot_region_avg_lex = na.omit(region_avg_lex)
-ggplot(data = plot_region_avg_lex, mapping = aes(x = year, y = avg_lex, group = region, col = region)) +
+plot_region_avg_lex <- ggplot(data = plot_region_avg_lex, mapping = aes(x = year, y = avg_lex, group = region, col = region)) +
   geom_line() +
   labs(
        x = "Year",
@@ -145,10 +194,14 @@ ggplot(data = plot_region_avg_lex, mapping = aes(x = year, y = avg_lex, group = 
 # title = "Region average life expectancy over time",
 
 #save plot
-ggsave("region_avg_lex.png")
+ggsave("region_avg_lex.png", plot = plot_region_avg_lex)
 ```
 
+### Question 1d
 
+We will now plot the average life expectancy for each region in 2019. We will use a bar chart to plot the data.
+
+![2019 Average Life Expectancy for each region](region_avg_lex_2019.png){width="387"}
 
 ```{r}
 #Qtn d
@@ -158,7 +211,7 @@ region_avg_lex_2019 <- filter(region_avg_lex, year == 2019)
 region_avg_lex_2019 <- na.omit(region_avg_lex_2019)
 
 #plot bar chart
-ggplot(data = region_avg_lex_2019, mapping = aes(x = region, y = avg_lex)) +
+region_avg_lex_2019 <- ggplot(data = region_avg_lex_2019, mapping = aes(x = region, y = avg_lex)) +
   geom_bar(stat = "identity") +
   labs(
        x = "Region",
@@ -170,10 +223,15 @@ ggplot(data = region_avg_lex_2019, mapping = aes(x = region, y = avg_lex)) +
 # title = "Region average life expectancy 2019",
 
 #save plot
-ggsave("region_avg_lex_2019.png")
-
+ggsave("region_avg_lex_2019.png", plot = region_avg_lex_2019)
 
 ```
+
+### Question 1e
+
+We will now calculate the number of countries that have a two-word name. The number of countries that have a two-word name is 24
+
+The code below uses strsplit and sapply to calculate the number of countries that have a two-word name.
 
 ```{r}
 #Qtn e
@@ -181,20 +239,5 @@ country_split <- strsplit(lex_raw$country, " ")
 
 #get count two word countries
 two_word_countries <- sum(sapply(country_split, length) == 2)
-two_word_countries
+# two_word_countries
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

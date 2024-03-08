@@ -1,0 +1,46 @@
+
+
+```{r}
+library(spatstat)
+#create a point pattern
+pp_csr <- rpoispp(lambda = 50)
+
+```
+
+
+```{r}
+plot(pp_csr)
+
+
+den <- density(pp_csr, sigma = 0.1)
+plot(den)
+contour(den)
+
+bw.diggle <- bw.diggle(pp_csr)
+bw.diggle
+
+
+```
+
+
+
+
+```{r}
+#kernel density in existence of covariate
+# A spatial covariate is a function 𝑍(𝑢) of spatial location:
+
+#bei is a data set of the location of trees and their diameter at breast height (DBH) in a forest in the Bei River Basin, China.from spatstat
+data(bei)
+elev <- bei.extra$elev
+
+#create new plot 
+plot.new()
+
+#plot the covariate
+plot(elev, main = "Elevation")
+
+denstity_elev <- rhohat(bei, elev)
+class(denstity_elev)
+plot(denstity_elev)
+```
+

@@ -1,3 +1,25 @@
+---
+title: "Analytics"
+subtitle: "Assignment 1"
+author: "Tinotenda Mutsemi (MTSTIN007)"
+date: "2024-03-05"
+output: 
+  pdf_document:
+    keep_tex: true
+  html_document:
+    keep_md: true
+    
+execute: 
+  echo: true
+  eval: false
+  warning: false
+  message: false
+---
+
+
+#Question 1
+
+
 ```{r}
 #Q1
 #load data
@@ -10,6 +32,9 @@ mealies$pests <- as.factor(mealies$pests)
 mealies$quality <- as.factor(mealies$quality)
 nrow(mealies)
 ```
+
+
+## Question 1a
 
 ```{r}
 set.seed(1)
@@ -40,6 +65,9 @@ mean(y_true != y_pred)
 table(y_pred, y_true)
 
 ```
+
+
+## Question 1b
 
 ```{r}
 #Q1b
@@ -86,6 +114,8 @@ table(y_pred, y_true)
 
 ```
 
+
+## Question 1c
 
 ```{r}
 #Q1c
@@ -184,6 +214,12 @@ mean(y_true != y_pred)
 
 
 ```
+
+
+
+# Question 2
+
+## Question 2a
 
 ```{r}
 #Qtn 2
@@ -309,6 +345,10 @@ F1_score
 #the test accuracy is 0.43 showing that the model is not good because the F1 score is less than 0.5
 
 ```
+
+
+## Question 2b
+
 ```{r}
 #qtn 2b
 library(ROCR)
@@ -336,7 +376,9 @@ abline(h = 0.75, col = 'red', lwd = 2)
 
 
 
+# Question 3
 
+## Question 3a
 
 ```{r}
 #Qtn 3
@@ -415,6 +457,7 @@ y_pred <- predict(parkinsons_en_cv, newx = x_test, s = parkinsons_en_cv$lambda.1
 mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 ```
+
 
 ```{r}
 
