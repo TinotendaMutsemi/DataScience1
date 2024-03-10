@@ -9,16 +9,18 @@ output:
   html_document:
     keep_md: true
     
-execute: 
-  echo: true
-  eval: false
-  warning: false
-  message: false
+# execute: 
+#   echo: true
+#   eval: false
+#   warning: false
+#   message: false
 ---
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, eval = FALSE, warning = FALSE, message = FALSE)
+```
 
-#Question 1
-
+# Question 1
 
 ```{r}
 #Q1
@@ -33,8 +35,24 @@ mealies$quality <- as.factor(mealies$quality)
 nrow(mealies)
 ```
 
-
 ## Question 1a
+
+We split the data into training and test sets using an 80/20 split.
+
+We fit a homegrown tree by setting the minimum size of the terminal nodes to 2 and the minimum deviance to 0.
+
+This tree is overfitted, and we see that loacation features and count result in the most misclassification error reduction.
+
+![Overfitted Homogenous Mealies Tree](big_tree_mealies.png){width="433"}
+
+We then test the perfomance with the 20% we splitted from the data. Below is the confusion matrix of the test showing a misclassification rate of 8%.
+
+|          | A Predicted | B Predicted | C Predicted | D Predicted |
+|----------|-------------|-------------|-------------|-------------|
+| A Actual | 40          | 3           | 0           | 1           |
+| B Actual | 2           | 70          | 1           | 0           |
+| C Actual | 0           | 1           | 31          | 5           |
+| D Actual | 4           | 0           | 3           | 89          |
 
 ```{r}
 set.seed(1)
@@ -66,8 +84,22 @@ table(y_pred, y_true)
 
 ```
 
-
 ## Question 1b
+
+We use cross validation to prune the tree. We use 10 fold cross validation and the misclassification error as the cost function. We plot the cross validation error against the number of terminal nodes and the penality alpha.
+
+![CV error for each tree size](cv_error_num_nones_mealies.png){width="415"}
+
+We see the tree with the minimum cross validation error (red) line has over 20 nodes. We choose the tree with 9 nodes (green line) because it has good interpretability at a low error rate, compared to the lost of interpretability we get from the minimal error tree. The pruned tree has a misclassification rate of 13.2% and the confusion matrix is shown below.
+
+These results are worse than from an overfitted tree. This tree has a higher cross validation error as shown by the fig above with CV error size for each tree. Therefore this is expected. We however gain interpretability at the cost of a sightly higher missclassification rate.
+
+|          | A Predicted | B Predicted | C Predicted | D Predicted |
+|----------|-------------|-------------|-------------|-------------|
+| A Actual | 30          | 10          | 1           | 4           |
+| B Actual | 1           | 71          | 1           | 0           |
+| C Actual | 0           | 3           | 22          | 12          |
+| D Actual | 0           | 2           | 0           | 94          |
 
 ```{r}
 #Q1b
@@ -114,8 +146,11 @@ table(y_pred, y_true)
 
 ```
 
-
 ## Question 1c
+
+We plot the location of the mealies on a scatter plot with the quality of the mealies represented by the color of the points. Tree methods partion the feature space othogonally and therefore we rotate the feature space to see if we can get a better partitioning of the feature space.
+
+![Mealies feature space](feature_space_mealies.png){width="465"}
 
 ```{r}
 #Q1c
@@ -132,6 +167,20 @@ legend('topright', legend = levels(mealies$quality), pch = 16, col = 1:4)
 
 ```
 
+Now we apply 10 fold cross validation to the rotated data. We rotate the feature space over thetas. We then plot the misclassification error against the rotation angle. We see that the misclassification error is lowest at 0.97
+
+![Misclassification rates for theta](misclass_theta_mealies.png){width="424"}
+
+The misclassification rate is 0.4%. This is expected because the tree method partions the feature space orthogonally and therefore rotating the feature space will find lower misclassification rates.
+
+Below is the confusion matrix for the rotated feature space. This tree perform very well even on unseen data.
+
+|          | A Predicted | B Predicted | C Predicted | D Predicted |
+|----------|-------------|-------------|-------------|-------------|
+| A Actual | 44          | 0           | 0           | 0           |
+| B Actual | 0           | 73          | 0           | 1           |
+| C Actual | 0           | 0           | 37          | 0           |
+| D Actual | 0           | 0           | 0           | 95          |
 
 ```{r}
 #rotate location feature space over thetas
@@ -212,16 +261,27 @@ y_pred <- predict(pruned_rotated_mealies_tree, newdata = rotated_mealies[-train_
 #misclassification rate
 mean(y_true != y_pred)
 
+#confusion matrix
+table(y_true, y_pred)
+
+
 
 ```
 
-
-
 # Question 2
 
-## Question 2a
+We do some exploratory analysis to see the variables correlation.
+
+Below is the scatter plot of First Inn Score and Bowl2 Strength. We can see that there is a positive correlation between the two variables.
+
+We remove the match id from the regression, standardize the data and use dummy variables for the categorical variables.
+
+We also remove defending team and chasing team from the regression. As they are not consistent across seasons.
+
+![First Inn Score vs the team Bowling in the second round](scatter_first_innsscore.png){width="445"}
 
 ```{r}
+library(dplyr)
 #Qtn 2
 #a
 #remove match id from the regression,
@@ -238,8 +298,18 @@ ipl <- read.csv("Q2dat.csv",
 
 str(ipl)
 
+#remove match id
+ipl <- ipl[, -1]
+
+#we remove defending team and chasing team from the regression
+ipl <- select(ipl, -Defending.Team, -Chasing.Team)
+
+
+set.seed(0)
+train_index <- sample(nrow(ipl), size = 0.8*nrow(ipl))
 
 ```
+
 ```{r}
 plot(ipl$First.Inn.Score, ipl$Bowl2.Strength,
      col = ifelse(ipl$Defending.Result == 1, 'blue', 'red'),
@@ -250,61 +320,87 @@ legend('topright', c('Win', 'Loss'),
        col = c('blue', 'red'),
        pch = c(3, 1))
 
+
 ```
 
+## Question 2a
+
+We fit check the model after feature selection and standardization.
 
 ```{r}
 library(kableExtra)
 library(broom)
-set.seed(0)
-train_index <- sample(nrow(ipl), size = 0.8*nrow(ipl))
+
+#standardize the data
+ipl$Bat2.Strength <- scale(ipl$Bat2.Strength)
+ipl$Bowl2.Strength <- scale(ipl$Bowl2.Strength)
+ipl$First.Inn.Score <- scale(ipl$First.Inn.Score)
+ipl$First.Inn.Median <- scale(ipl$First.Inn.Median)
+ipl$Second.Inn.Median <- scale(ipl$Second.Inn.Median)
+ipl$Ground.Altitude <- scale(ipl$Ground.Altitude)
+ipl$Ground.Length <- scale(ipl$Ground.Length)
+ipl$Ground.Width <- scale(ipl$Ground.Width)
+
 
 #checking the prevalance rate
 y_train <- ipl$Defending.Result[train_index]
 mean(as.numeric(y_train) - 1)
 
-#fitting vannila logistic regression
+#convert to data frame
+ipl <- as.data.frame(ipl)
+
+#fitting logistic regression
 ipl_lr <- glm(Defending.Result ~ ., data = ipl, subset = train_index, family = 'binomial')
 
-ipl_lr |> tidy() |> kable(digits = 2, caption = 'Saturated logistic regression model fitted to IPL data')
+ipl_lr |> tidy() |> kable(digits = 2, caption = 'Logistic regression model fitted to IPL data')
 
 ```
 
+Now we fit an elastic net model to the data. We use cross validation to select the best alpha and lambda. We sequence alpha from 0 to 1 and use 10 fold cross validation to select the best lambda for each alpha.
 
+The plot below shows the misclassificatioin rates for each alpha. The best alpha is 0.3
 
+![Misclassification Rates for each Alpha at the best Lambda](misclass_rate_ipl.png)
 
 ```{r}
+
 library(glmnet)
 library(plotmo)
 library(dplyr)
 
-x_train <- select(ipl, -Defending.Result, -MatchID) |> slice(train_index)
+x_train <- select(ipl, -Defending.Result) |> slice(train_index)
 x_train <- as.matrix(x_train)
 y_train <- ipl$Defending.Result[train_index]
-```
 
-```{r}
 
 #range over which alpha is to be used
 alpha_seq <- seq(0, 1, by = 0.1)
 alpha_plot <- rep(0, length(alpha_seq))
 for (i in 1:length(alpha_seq)){
-  ipl_en_cv <- cv.glmnet(x_train, y_train, family = 'binomial', alpha = alpha_seq[i], standardize = TRUE, type.measure = 'class')
-  #get the misclassification rate of the lambda.1se
-  alpha_plot[i] <- ipl_en_cv$cvm[which(ipl_en_cv$lambda == ipl_en_cv$lambda.1se)]
+ipl_en_cv <- cv.glmnet(x_train, y_train, family = 'binomial', alpha = alpha_seq[i], standardize = TRUE, type.measure = 'class')
+#get the misclassification rate of the lambda.1se
+alpha_plot[i] <- ipl_en_cv$cvm[which(ipl_en_cv$lambda == ipl_en_cv$lambda.1se)]
 }
 #print the lambda.1se
-# coef(ipl_en_cv, s = ipl_en_cv$lambda.1se)
+# coef(ipl_en_cv, s = ipl_en_cv\$lambda.1se)
 
 plot(alpha_seq, alpha_plot, type = 'l', col = 'navy', lwd = 2,
-     xlab = 'Alpha', ylab = 'Misclassification rate')
+xlab = 'Alpha', ylab = 'Misclassification rate')
 
 #alpha 0.3 is the best
 ```
 
+We fit the elastic net model with alpha = 0.3 and plot the coefficients. The best lambda is 0.28.
 
+We see that at these hyperparameter we only have 1 feature in the model.
+
+![Coefficients at lambda 0.28 is First Inn Score only](coef_ipl.png)
+
+First Inn Score with a coefficient of 0.25. This means that a unit increase in the first innings score increases the log odds of winning by 0.25.
 
 ```{r}
+
+
 #fitting the elastic net with alpha = 0.3
 ipl_en <- glmnet(x_train, y_train, family = 'binomial', alpha = 0.3, standardize = TRUE)
 #plot the coefficients
@@ -312,23 +408,29 @@ plot(ipl_en, xvar = 'lambda', label = TRUE, xlab = 'Lambda', ylab = 'Coefficient
 
 ipl_en_cv <- cv.glmnet(x_train, y_train, family = 'binomial', alpha = 0.3
                        , standardize = TRUE, type.measure = 'class')
-
+plot(ipl_en_cv)
 #lambda.1se
 ipl_en_cv$lambda.1se
 
-
-#misclassification rate
-ipl_en_cv$cvm[which(ipl_en_cv$lambda == ipl_en_cv$lambda.1se)]
-
-#print the coefficients
 coef(ipl_en_cv, s = ipl_en_cv$lambda.1se)
+
 
 ```
 
+Below is the confusion matrix from testing the model.
+
+|             | Loss Predicted | Win Predicted |
+|-------------|----------------|---------------|
+| Loss Actual | 80             | 10            |
+| Win Actual  | 40             | 19            |
+
+: Confusion Matrix
+
+The F score is 0.43 showing that the model is not good because the F1 score is less than 0.5.
 
 ```{r}
 #F1 score testing accuracy
-x_test <- select(ipl, -Defending.Result, -MatchID) |> slice(-train_index)
+x_test <- select(ipl, -Defending.Result) |> slice(-train_index)
 x_test <- as.matrix(x_test)
 y_test <- ipl$Defending.Result[-train_index]
 
@@ -345,7 +447,6 @@ F1_score
 #the test accuracy is 0.43 showing that the model is not good because the F1 score is less than 0.5
 
 ```
-
 
 ## Question 2b
 
@@ -371,14 +472,18 @@ abline(h = 0.75, col = 'red', lwd = 2)
 
 
 
+
 ```
-
-
-
 
 # Question 3
 
 ## Question 3a
+
+We do some exploratory analysis to see the variables correlation.
+
+![Variable correlations for Parkinsons data set](corr_parkinsons.png){width="361"}
+
+The table below shows the covariance, p value, and the correlation coefficient for the variables in the Parkinsons data set.
 
 ```{r}
 #Qtn 3
@@ -396,13 +501,6 @@ str(parkinsons)
 set.seed(0)
 train_index <- sample(nrow(parkinsons), size = 0.8*nrow(parkinsons))
 
-#EDA
-#fitting vannila logistic regression
-parkinsons_lr <- glm(total_UPDRS ~ ., data = parkinsons, subset = train_index, family = 'gaussian')
-
-
-parkinsons_lr |> tidy() |> kable(digits = 2, caption = 'Saturated logistic regression model fitted to UPDRS data')
-
 
 x_train_cor <- select(parkinsons, -sex,) |> slice(train_index)
 corrplot(cor(x_train_cor))
@@ -416,29 +514,28 @@ y_train <- parkinsons$total_UPDRS[train_index]
 
 ```
 
+### Question 3a i
 
+We fit an elastic net with alpha = 1 for lasso regularization.
 
+Our final model (min lambda.1se) has test MSE of 95, and variables age, sex, DFA with high significance.
+
+The plot shows lambda and MSE for the elastic net model.
+
+![MSE Elastic net over lambda](mse_elastic_net.png){width="466"}
 
 ```{r}
-
+library(glmnet)
 #split the data
 set.seed(0)
 train_index <- sample(nrow(parkinsons), size = 0.8*nrow(parkinsons))
 
-#fit the logistic regression for total_UPDRS using glmnet
-
-#fit the elastic net with alpha = 0.5
-parkinsons_en <- glmnet(x_train, y_train, family = 'gaussian', alpha = 1, standardize = TRUE)
-
-#plot the coefficients
-plot(parkinsons_en, xvar = 'lambda', label = TRUE, xlab = 'Lambda', ylab = 'Coefficients')
-
-parkinsons_en_cv <- cv.glmnet(x_train, y_train, family = 'gaussian', alpha = 1
+parkinsons_en_cv <- cv.glmnet(x_train, y_train, family = 'gaussian', alpha = 0.5
                        , standardize = TRUE, type.measure = 'mse')
 
 plot.new
 #plot the cross validation error
-plot(parkinsons_en_cv, xlab = 'Log(lambda)', ylab = 'Mean Squared Error', col = 'navy', lwd = 2)
+plot(parkinsons_en_cv)
 
 #add the lambda.1se and lambda.min points to the plot 
 abline(v = log(parkinsons_en_cv$lambda.1se), col = 'red', lwd = 2)
@@ -458,6 +555,13 @@ mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 ```
 
+### Question 3a ii
+
+We range k from 1 to 15 and set up the control for model training using 10-fold cross-validation, repeated 10 times to provide a robust estimate of model performance.
+
+The choose k = 4 because it has the lowest RMSE.
+
+![RMSE of KNN from k = 1 to 15](rmse_knn.png){width="468"}
 
 ```{r}
 
@@ -465,23 +569,32 @@ library(caret)
 
 #KNN
 #fit the model using knnreg
-knn_grid <- expand.grid(k = 1:20)
-knn_control <- trainControl(method = 'repeatedcv', number = 10, repeats = 10)
-knn_model <- train(total_UPDRS ~ age + sex + Jitter.Abs. + Shimmer.APQ3 + Shimmer.DDA + NHR + HNR + RPDE + DFA + PPE,
-                   data = parkinsons,
-                   subset = train_index,
-                   method = 'knn', 
-                   trControl = knn_control, 
-                   tuneGrid = knn_grid)
+knn_grid <- expand.grid(k = 1:15)
+# knn_control <- trainControl(method = 'repeatedcv', number = 10, repeats = 10)
+# knn_model <- train(total_UPDRS ~ age + sex + Jitter.Abs. + Shimmer.APQ3 + Shimmer.DDA + NHR + HNR + RPDE + DFA + PPE,
+#                    data = parkinsons,
+#                    subset = train_index,
+#                    method = 'knn',
+#                    trControl = knn_control,
+#                    tuneGrid = knn_grid)
+# 
+# #save the model
+# saveRDS(knn_model, 'knn_model.rds')
+#load the model
+knn_model <- readRDS('knn_model.rds')
 
 #plot the model
-plot(knn_model)
+rmse_knn <- ggplot(knn_model, main = 'RMSE vs k') +
+  geom_point(aes(x = k, y = RMSE), col = 'navy') +
+  geom_line(aes(x = k, y = RMSE), col = 'navy') 
+
+rmse_knn
+ggsave('rmse_knn.png', rmse_knn)
 
 #k = 4 as shown by the plot
 knn_model$bestTune
 #mse of the best model
 knn_model$results[which(knn_model$bestTune == knn_model$bestTune$k),]
-
 #predict the test data using the best model
 y_pred <- predict(knn_model, newdata = parkinsons[-train_index,])
 
@@ -491,44 +604,13 @@ mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 ```
 
-```{r}
+### Question 3a iii
 
-#fit the model using random forest
-library(randomForest)
+Now we train a random forest model using ranger and caret. Number of variables randomly sampled as candidates at each split in the decision tree is varied from 2 to 20, and the minimum node size is 1, 5, 10, 15, 20. We use 10-fold cross-validation, repeated 10 times to provide a robust estimate of model performance.
 
-rf_300 <- randomForest(total_UPDRS ~ .,
-                       data = parkinsons,
-                       subset = train_index,
-                       ntree = 300,
-                       importance = TRUE,
-                       na.action = na.exclude)
+The est MSE of 8.75.
 
-
-#plot the model
-plot(rf_300)
-
-#select the best model
-rf_300
-
-#predict the test data using the best model
-y_pred <- predict(rf_300, newdata = parkinsons[-train_index,])
-
-#mean squared error
-mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
-
-
-#variable importance table
-importance(rf_300)
-
-#variable importance
-varImpPlot(rf_300)
-
-par(mar = c(5, 6, 4, 1) + 0.1)
-rf_300_imp <- randomForest::importance(rf_300, type = 1)
-rf_300_imp <- rf_300_imp[order(rf_300_imp[, 1], decreasing = FALSE), ]
-barplot(rf_300_imp, horiz = TRUE, col = 'navy', las = 1, main = 'Variable Importance')
-
-```
+![Random forests grid RMSE](rmse_random_forest.png){width="598"}
 
 ```{r}
 #use ranger and caret to fit the model
@@ -538,90 +620,158 @@ library(ranger)
 rf_grid <- expand.grid(mtry = 2: ncol(parkinsons) - 1,
                        splitrule = c('variance', 'extratrees'),
                        min.node.size = c(1, 5, 10, 15, 20))
-rf_control <- trainControl(method = 'repeatedcv')
-rf_model_grid_search <- train(total_UPDRS ~ .,
-                  data = parkinsons,
-                  subset = train_index,
-                  method = 'ranger',
-                  trControl = rf_control,
-                  tuneGrid = rf_grid)
+rf_control <- trainControl(method = 'repeatedcv', number = 10, repeats = 10)
 
-rf_model_grid_search$finalModel
+start.time <- Sys.time()
+
+# rf_model_grid_search <- train(total_UPDRS ~ .,
+#                   data = parkinsons,
+#                   subset = train_index,
+#                   method = 'ranger',
+#                   trControl = rf_control,
+#                   tuneGrid = rf_grid,
+#                   importance = 'impurity')
+
+end.time <- Sys.time()
+
+# Calculate the time taken for this single iteration
+time.taken <- end.time - start.time
+#the time taken for the model to run
+print(time.taken)
+
+#save the model
+# saveRDS(rf_model_grid_search, 'rf_model_grid_search.rds')
+#load the model
+rf_model_grid_search <- readRDS('rf_model_grid_search.rds')
 
 plot(rf_model_grid_search)
 
-plot(varImp(rf_model_grid_search))
+# Calculate variable importance
+# importance <- varImp(rf_model_grid_search, scale = TRUE)
 
-```
+# Plot variable importance
+# plot(importance)
+#plot the model
 
 
-```{r}
+#predict the test data using the best model
+y_pred <- predict(rf_model_grid_search, newdata = parkinsons[-train_index,])
 
-#fit the model using xgbTree
-
-library(caret)
-xgb_grid <- expand.grid(nrounds = 100,
-                        max_depth = 1:10,
-                        eta = c(0.01, 0.1, 0.3),
-                        gamma = 0,
-                        colsample_bytree = 1,
-                        min_child_weight = 1,
-                        subsample = 1)
-
-xgb_control <- trainControl(method = 'repeatedcv', number = 10, repeats = 10)
-
-xgb_model <- train(total_UPDRS ~ .,
-                   data = parkinsons,
-                   subset = train_index,
-                   method = 'xgbTree',
-                   trControl = xgb_control,
-                   tuneGrid = xgb_grid)
-
-#save the model
-save(xgb_model, file = 'xgb_model.RData')
-
-#load the model
-load('xgb_model.RData')
-
-xgb_model$bestTune
-
-plot(varImp(xgb_model))
-
-plot(xgb_model)
-
-xgb_model$results[which(xgb_model$bestTune == xgb_model$bestTune$nrounds),]
-
-y_pred <- predict(xgb_model, newdata = parkinsons[-train_index,])
-
+#mean squared error
 mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 
 ```
 
 ```{r}
+
+#predict the test data using the best model
+# y_pred <- predict(rf_model_grid_search, newdata = parkinsons_test)
+# 
+# #save the predictions
+# write.csv(y_pred, file = 'rf_MTSTIN007.csv')
 ```
 
+### Question 3a iv
+
+We now fit the model using the xgboost algorithm. We search for the best hyperparameters using a grid search set to 100 boosting rounds and 10-fold cross validation repeated 10 times. We then fit the model using the best hyperparameters and predict the test data.
+
+Below is the variable importance plot for the xgboost model. We notice that after the 8th variable the importance is 0. The most important features are age, DFA and sex.
+
+```{r}
+
+#fit the model using xgbTree
+xgb_grid <- expand.grid(nrounds = 100,  # Number of boosting rounds
+                        max_depth = 1:10,  # Maximum tree depth
+                        eta = c(0.01, 0.1, 0.3),      # Learning rate
+                        gamma = 0,      # Minimum loss reduction required to make a further partition
+                        colsample_bytree = 1,  # Subsample ratio of columns when constructing each tree
+                        min_child_weight = 1,  # Minimum sum of instance weight needed in a child
+                        subsample = 1)  # Subsample ratio of the training instances
+
+xgb_control <- trainControl(method = 'repeatedcv', number = 10, repeats = 10)
+
+start.time <- Sys.time()
+
+# xgb_model <- train(total_UPDRS ~ .,
+#                    data = parkinsons,
+#                    subset = train_index,
+#                    method = 'xgbTree',
+#                    trControl = xgb_control,
+#                    tuneGrid = xgb_grid)
+
+end.time <- Sys.time()
+
+# Calculate the time taken for this single iteration
+time.taken <- end.time - start.time
+#the time taken for the model to run
+print(time.taken)
+
+#save the model
+# save(xgb_model, file = 'xgb_model.RData')
+
+#load the model
+load('xgb_model.RData')
+
+xgb_model$bestTune
+
+varimpo_xgboost <- ggplot(varImp(xgb_model), as.table = TRUE)
+#save the plot
+ggsave('varimpo_xgboost.png', varimpo_xgboost)
 
 
 
+xgb_model$results[which(xgb_model$bestTune == xgb_model$bestTune$nrounds),]
+
+y_pred <- predict(xgb_model, newdata = parkinsons[-train_index,])
+y_pred
+parkinsons$total_UPDRS[-train_index]
+mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 
+```
+
+![XGBoost Variable Importance](varimpo_xgboost.png){width="391"}
+
+## Question 3b
+
+The table below shows the MSE of the 4 different models. XGBoost produces the least MSE, and we shall choose it as the best model and use it to test the data performance with Q3testing.csv.
+
+| Model         | MSE   |
+|---------------|-------|
+| Elastic net   | 95.59 |
+| KNN           | 14.90 |
+| Random forest | 19.70 |
+| XGBoost       | 9.00  |
+
+Below is the plot showing the RMSE of the XGBoost model. The selected model has a depth of 8. There is a low RMSE however its weakness is lack of interpretability. For lesser tree depths, where we have good interpretability, the RMSE has not yet converged.
+
+![RMSE vs Maximum tree depth.](rmse_xgboost.png){width="419"}
+
+```{r}
 
 
+#plot the model
+rmse_xgboost <- ggplot(xgb_model, method = 'xgbTree')
+#save the plot
+ggsave('rmse_xgboost.png', plot = rmse_xgboost)
 
 
+```
 
+## Question 3c
 
+The predictions for Q3testing are in MTSTIN007.csv.
 
-
-
-
-
-
-
-
-
-
-
-
-
+```{r}
+##read the test data
+# parkinsons_test <- read.csv('Q3testing.csv',
+#                             colClasses = c(sex = 'factor'))
+# 
+# 
+# #predict the test data using the best model
+# y_pred <- predict(xgb_model, newdata = parkinsons_test)
+# 
+# #save the predictions
+# write.csv(y_pred, file = 'MTSTIN007.csv')
+```
