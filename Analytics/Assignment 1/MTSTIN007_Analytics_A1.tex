@@ -96,13 +96,15 @@
 \hypertarget{question-1a}{%
 \subsection{Question 1a}\label{question-1a}}
 
-We split the data into training and test sets using an 80/20 split.
+After splitting the data into training and test sets using an 80/20
+split, we fit a homogeneous tree by setting the minimum size of the
+terminal nodes to 2 and the minimum deviance to 0. This will achieve
+homogenous terminal nodes since the tree will always split for any
+deviance reduction and any node has at least 2 observations. We then
+plot the tree to see the structure.
 
-We fit a homegrown tree by setting the minimum size of the terminal
-nodes to 2 and the minimum deviance to 0.
-
-This tree is overfitted, and we see that loacation features and count
-result in the most misclassification error reduction.
+This tree is grossly overfitted, and we see that location features and
+count result in the most classifications error reduction.
 
 \begin{figure}
 \centering
@@ -130,10 +132,9 @@ D Actual & 4 & 0 & 3 & 89 \\
 \hypertarget{question-1b}{%
 \subsection{Question 1b}\label{question-1b}}
 
-We use cross validation to prune the tree. We use 10 fold cross
-validation and the misclassification error as the cost function. We plot
-the cross validation error against the number of terminal nodes and the
-penality alpha.
+We use 10 fold cross validation and the misclassification error as the
+cost function. Figure 2 shows cross validation error against the number
+of terminal nodes and the penality alpha.
 
 \begin{figure}
 \centering
@@ -142,17 +143,21 @@ penality alpha.
 \end{figure}
 
 We see the tree with the minimum cross validation error (red) line has
-over 20 nodes. We choose the tree with 9 nodes (green line) because it
-has good interpretability at a low error rate, compared to the lost of
-interpretability we get from the minimal error tree. The pruned tree has
-a misclassification rate of 13.2\% and the confusion matrix is shown
-below.
+over 20 nodes. But we choose the tree with 9 nodes (green line) because
+it has good interpretability at still relatively low error rate. Here we
+sacrifice a lower cross validation error for interpretability. The
+pruned tree has a test misclassification rate of 13.2\% and the
+confusion matrix is shown below.
 
-These results are worse than from an overfitted tree. This tree has a
-higher cross validation error as shown by the fig above with CV error
-size for each tree. Therefore this is expected. We however gain
-interpretability at the cost of a sightly higher missclassification
-rate.
+Comparing the test misclassification rate with the one from a), this
+tree performs worse than from an overfitted tree. We however gain
+interpretability at the cost of a sightly higher missclassification rate
+and perhaps best out of sample predictions.
+
+The cross validation error of the chosen tree is higher than the test
+misclassification rate. This is a good sign that the tree is not
+overfitted. This discrepency can be explained by the high variability in
+the cross validations caused by the size of the data set.
 
 \begin{longtable}[]{@{}lllll@{}}
 \toprule\noalign{}
@@ -182,10 +187,9 @@ space.
 \caption{Mealies feature space}
 \end{figure}
 
-Now we apply 10 fold cross validation to the rotated data. We rotate the
-feature space over thetas. We then plot the misclassification error
-against the rotation angle. We see that the misclassification error is
-lowest at 0.97
+Now we apply 10 fold cross validation to the rotated data. We then plot
+the misclassification error against the rotation angle. We see that the
+misclassification error is lowest at 0.974 radians.
 
 \begin{figure}
 \centering
@@ -216,16 +220,15 @@ D Actual & 0 & 0 & 0 & 95 \\
 \hypertarget{question-2}{%
 \section{Question 2}\label{question-2}}
 
-We do some exploratory analysis to see the variables correlation.
-
-Below is the scatter plot of First Inn Score and Bowl2 Strength. We can
-see that there is a positive correlation between the two variables.
+We do some exploratory analysis to see the variables correlation. Below
+is the scatter plot of First Inn Score and Bowl2 Strength, this gives us
+a feel of the data we are modelling.
 
 We remove the match id from the regression, standardize the data and use
 dummy variables for the categorical variables.
 
 We also remove defending team and chasing team from the regression. As
-they are not consistent across seasons.
+they are not consistent across seasons thus not useful for predictions.
 
 \begin{figure}
 \centering
@@ -236,14 +239,21 @@ they are not consistent across seasons.
 \hypertarget{question-2a}{%
 \subsection{Question 2a}\label{question-2a}}
 
-We fit check the model after feature selection and standardization.
+After some feature selection we fit a vanilla model to get a feel of the
+model performance. We see that only First Inn score is significant.
 
-Now we fit an elastic net model to the data. We use cross validation to
+\begin{figure}
+\centering
+\includegraphics[width=4.28125in,height=\textheight]{coef_pval_vanilla_ipl.png}
+\caption{Coefficients of vanilla logistic regression}
+\end{figure}
+
+We then fit an elastic net model to the data. We use cross validation to
 select the best alpha and lambda. We sequence alpha from 0 to 1 and use
 10 fold cross validation to select the best lambda for each alpha.
 
 The plot below shows the misclassificatioin rates for each alpha. The
-best alpha is 0.3
+alpha yielding the least misclassification error is 0.3
 
 \begin{figure}
 \centering
@@ -252,7 +262,7 @@ best alpha is 0.3
 \end{figure}
 
 We fit the elastic net model with alpha = 0.3 and plot the coefficients.
-The best lambda is 0.28.
+The best lambda is 0.28, as shown in figure 6.
 
 We see that at these hyperparameter we only have 1 feature in the model.
 
@@ -284,11 +294,21 @@ Loss Actual & 80 & 10 \\
 Win Actual & 40 & 19 \\
 \end{longtable}
 
-The F score is 0.43 showing that the model is not good because the F1
-score is less than 0.5.
+The F score is 0.43 showing that the model is not good because the score
+is less than 0.5.
 
 \hypertarget{question-2b}{%
 \subsection{Question 2b}\label{question-2b}}
+
+The are under the ROC curve is 0.65. The ROC curve is shown below. The
+red line shows the recall of 0.75. At tau greater or equal to the red
+line, we have a recall value of at least 0.75.
+
+\begin{figure}
+\centering
+\includegraphics[width=4.61458in,height=\textheight]{roc_curve_ipl.png}
+\caption{ROC curve with 0.75 recall line}
+\end{figure}
 
 \hypertarget{question-3}{%
 \section{Question 3}\label{question-3}}
@@ -296,7 +316,9 @@ score is less than 0.5.
 \hypertarget{question-3a}{%
 \subsection{Question 3a}\label{question-3a}}
 
-We do some exploratory analysis to see the variables correlation.
+We do some exploratory analysis to see the variables correlation. We see
+that Shimmer variables are highly correlated with each other and so are
+Jitter variables.
 
 \begin{figure}
 \centering
@@ -304,16 +326,12 @@ We do some exploratory analysis to see the variables correlation.
 \caption{Variable correlations for Parkinsons data set}
 \end{figure}
 
-The table below shows the covariance, p value, and the correlation
-coefficient for the variables in the Parkinsons data set.
-
 \hypertarget{question-3a-i}{%
 \subsubsection{Question 3a i}\label{question-3a-i}}
 
-We fit an elastic net with alpha = 1 for lasso regularization.
-
-Our final model (min lambda.1se) has test MSE of 95, and variables age,
-sex, DFA with high significance.
+We fit an elastic net with alpha = 1 for lasso regularization. Our final
+model ( lambda.1se) has test MSE of 95, and variables age, sex, DFA with
+high significance.
 
 The plot shows lambda and MSE for the elastic net model.
 
@@ -376,9 +394,11 @@ features are age, DFA and sex.
 \hypertarget{question-3b}{%
 \subsection{Question 3b}\label{question-3b}}
 
-The table below shows the MSE of the 4 different models. XGBoost
-produces the least MSE, and we shall choose it as the best model and use
-it to test the data performance with Q3testing.csv.
+The table below shows the test MSE of the 4 different models. Random
+forests produces the least MSE but an R squared of 51\% and the
+parameters at best tune seem to overfit the model. So we shall choose
+XGBoost as the best model and use it to test the data performance with
+Q3testing.csv.
 
 \begin{longtable}[]{@{}ll@{}}
 \toprule\noalign{}
@@ -387,9 +407,9 @@ Model & MSE \\
 \endhead
 \bottomrule\noalign{}
 \endlastfoot
-Elastic net & 95.59 \\
+Elastic net (L1) & 95.59 \\
 KNN & 14.90 \\
-Random forest & 19.70 \\
+Random forest & 8.77 \\
 XGBoost & 9.00 \\
 \end{longtable}
 

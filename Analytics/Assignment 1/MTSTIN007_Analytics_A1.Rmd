@@ -37,11 +37,9 @@ nrow(mealies)
 
 ## Question 1a
 
-We split the data into training and test sets using an 80/20 split.
+After splitting the data into training and test sets using an 80/20 split, we fit a homogeneous tree by setting the minimum size of the terminal nodes to 2 and the minimum deviance to 0. This will achieve homogenous terminal nodes since the tree will always split for any deviance reduction and any node has at least 2 observations. We then plot the tree to see the structure.
 
-We fit a homegrown tree by setting the minimum size of the terminal nodes to 2 and the minimum deviance to 0.
-
-This tree is overfitted, and we see that loacation features and count result in the most misclassification error reduction.
+This tree is grossly overfitted, and we see that location features and count result in the most classifications error reduction.
 
 ![Overfitted Homogenous Mealies Tree](big_tree_mealies.png){width="433"}
 
@@ -86,13 +84,15 @@ table(y_pred, y_true)
 
 ## Question 1b
 
-We use cross validation to prune the tree. We use 10 fold cross validation and the misclassification error as the cost function. We plot the cross validation error against the number of terminal nodes and the penality alpha.
+We use 10 fold cross validation and the misclassification error as the cost function. Figure 2 shows cross validation error against the number of terminal nodes and the penality alpha.
 
 ![CV error for each tree size](cv_error_num_nones_mealies.png){width="415"}
 
-We see the tree with the minimum cross validation error (red) line has over 20 nodes. We choose the tree with 9 nodes (green line) because it has good interpretability at a low error rate, compared to the lost of interpretability we get from the minimal error tree. The pruned tree has a misclassification rate of 13.2% and the confusion matrix is shown below.
+We see the tree with the minimum cross validation error (red) line has over 20 nodes. But we choose the tree with 9 nodes (green line) because it has good interpretability at still relatively low error rate. Here we sacrifice a lower cross validation error for interpretability. The pruned tree has a test misclassification rate of 13.2% and the confusion matrix is shown below.
 
-These results are worse than from an overfitted tree. This tree has a higher cross validation error as shown by the fig above with CV error size for each tree. Therefore this is expected. We however gain interpretability at the cost of a sightly higher missclassification rate.
+Comparing the test misclassification rate with the one from a), this tree performs worse than from an overfitted tree. We however gain interpretability at the cost of a sightly higher missclassification rate and perhaps best out of sample predictions.
+
+The cross validation error of the chosen tree is higher than the test misclassification rate. This is a good sign that the tree is not overfitted. This discrepency can be explained by the high variability in the cross validations caused by the size of the data set.
 
 |          | A Predicted | B Predicted | C Predicted | D Predicted |
 |----------|-------------|-------------|-------------|-------------|
@@ -127,12 +127,15 @@ abline(v = min_cv_error_tree_size, lty = 2, col = 'red')
 chosen_cv_error_tree_size <- mealies_cv$size[which(mealies_cv$k == 9)]
 abline(v = chosen_cv_error_tree_size, lty = 2, col = 'green')
 
+
 #prune the tree
 pruned_mealies_tree <- prune.misclass(mealies_big_tree, best = chosen_cv_error_tree_size)
+
 
 plot.new
 plot(pruned_mealies_tree)
 text(pruned_mealies_tree, pretty = 0)
+
 
 #Prediction accuracy
 y_true  <-  mealies$quality[-train_index]
@@ -167,7 +170,7 @@ legend('topright', legend = levels(mealies$quality), pch = 16, col = 1:4)
 
 ```
 
-Now we apply 10 fold cross validation to the rotated data. We rotate the feature space over thetas. We then plot the misclassification error against the rotation angle. We see that the misclassification error is lowest at 0.97
+Now we apply 10 fold cross validation to the rotated data. We then plot the misclassification error against the rotation angle. We see that the misclassification error is lowest at 0.974 radians.
 
 ![Misclassification rates for theta](misclass_theta_mealies.png){width="424"}
 
@@ -270,13 +273,11 @@ table(y_true, y_pred)
 
 # Question 2
 
-We do some exploratory analysis to see the variables correlation.
-
-Below is the scatter plot of First Inn Score and Bowl2 Strength. We can see that there is a positive correlation between the two variables.
+We do some exploratory analysis to see the variables correlation. Below is the scatter plot of First Inn Score and Bowl2 Strength, this gives us a feel of the data we are modelling.
 
 We remove the match id from the regression, standardize the data and use dummy variables for the categorical variables.
 
-We also remove defending team and chasing team from the regression. As they are not consistent across seasons.
+We also remove defending team and chasing team from the regression. As they are not consistent across seasons thus not useful for predictions.
 
 ![First Inn Score vs the team Bowling in the second round](scatter_first_innsscore.png){width="445"}
 
@@ -325,7 +326,9 @@ legend('topright', c('Win', 'Loss'),
 
 ## Question 2a
 
-We fit check the model after feature selection and standardization.
+After some feature selection we fit a vanilla model to get a feel of the model performance. We see that only First Inn score is significant.
+
+![Coefficients of vanilla logistic regression](coef_pval_vanilla_ipl.png){width="411"}
 
 ```{r}
 library(kableExtra)
@@ -356,9 +359,9 @@ ipl_lr |> tidy() |> kable(digits = 2, caption = 'Logistic regression model fitte
 
 ```
 
-Now we fit an elastic net model to the data. We use cross validation to select the best alpha and lambda. We sequence alpha from 0 to 1 and use 10 fold cross validation to select the best lambda for each alpha.
+We then fit an elastic net model to the data. We use cross validation to select the best alpha and lambda. We sequence alpha from 0 to 1 and use 10 fold cross validation to select the best lambda for each alpha.
 
-The plot below shows the misclassificatioin rates for each alpha. The best alpha is 0.3
+The plot below shows the misclassificatioin rates for each alpha. The alpha yielding the least misclassification error is 0.3
 
 ![Misclassification Rates for each Alpha at the best Lambda](misclass_rate_ipl.png)
 
@@ -390,7 +393,7 @@ xlab = 'Alpha', ylab = 'Misclassification rate')
 #alpha 0.3 is the best
 ```
 
-We fit the elastic net model with alpha = 0.3 and plot the coefficients. The best lambda is 0.28.
+We fit the elastic net model with alpha = 0.3 and plot the coefficients. The best lambda is 0.28, as shown in figure 6.
 
 We see that at these hyperparameter we only have 1 feature in the model.
 
@@ -426,7 +429,7 @@ Below is the confusion matrix from testing the model.
 
 : Confusion Matrix
 
-The F score is 0.43 showing that the model is not good because the F1 score is less than 0.5.
+The F score is 0.43 showing that the model is not good because the score is less than 0.5.
 
 ```{r}
 #F1 score testing accuracy
@@ -450,7 +453,12 @@ F1_score
 
 ## Question 2b
 
+The are under the ROC curve is 0.65. The ROC curve is shown below. The red line shows the recall of 0.75. At tau greater or equal to the red line, we have a recall value of at least 0.75.
+
+![ROC curve with 0.75 recall line](roc_curve_ipl.png){width="443"}
+
 ```{r}
+
 #qtn 2b
 library(ROCR)
 
@@ -465,6 +473,9 @@ plot(perf, col = 'navy', lwd = 2, main = 'ROC curve')
 
 #AUC
 auc <- performance(pred, 'auc')
+#print the AUC
+
+
 #add point with recall = 0.75
 abline(h = 0.75, col = 'red', lwd = 2)
 
@@ -479,11 +490,9 @@ abline(h = 0.75, col = 'red', lwd = 2)
 
 ## Question 3a
 
-We do some exploratory analysis to see the variables correlation.
+We do some exploratory analysis to see the variables correlation. We see that Shimmer variables are highly correlated with each other and so are Jitter variables.
 
 ![Variable correlations for Parkinsons data set](corr_parkinsons.png){width="361"}
-
-The table below shows the covariance, p value, and the correlation coefficient for the variables in the Parkinsons data set.
 
 ```{r}
 #Qtn 3
@@ -516,9 +525,7 @@ y_train <- parkinsons$total_UPDRS[train_index]
 
 ### Question 3a i
 
-We fit an elastic net with alpha = 1 for lasso regularization.
-
-Our final model (min lambda.1se) has test MSE of 95, and variables age, sex, DFA with high significance.
+We fit an elastic net with alpha = 1 for lasso regularization. Our final model ( lambda.1se) has test MSE of 95, and variables age, sex, DFA with high significance.
 
 The plot shows lambda and MSE for the elastic net model.
 
@@ -564,7 +571,7 @@ The choose k = 4 because it has the lowest RMSE.
 ![RMSE of KNN from k = 1 to 15](rmse_knn.png){width="468"}
 
 ```{r}
-
+library(ggplot2)
 library(caret)
 
 #KNN
@@ -593,6 +600,7 @@ ggsave('rmse_knn.png', rmse_knn)
 
 #k = 4 as shown by the plot
 knn_model$bestTune
+
 #mse of the best model
 knn_model$results[which(knn_model$bestTune == knn_model$bestTune$k),]
 #predict the test data using the best model
@@ -601,6 +609,10 @@ y_pred <- predict(knn_model, newdata = parkinsons[-train_index,])
 #mean squared error
 mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
+
+```
+
+```{r}
 
 ```
 
@@ -647,12 +659,20 @@ rf_model_grid_search <- readRDS('rf_model_grid_search.rds')
 plot(rf_model_grid_search)
 
 # Calculate variable importance
-# importance <- varImp(rf_model_grid_search, scale = TRUE)
+importance <- varImp(rf_model_grid_search, scale = TRUE)
 
 # Plot variable importance
-# plot(importance)
+plot(importance)
 #plot the model
 
+#show the best model
+rf_model_grid_search$bestTune
+
+#mse of the best model
+rf_model_grid_search$results[which(rf_model_grid_search$bestTune == rf_model_grid_search$bestTune$mtry),]
+rf_model_grid_search$results[which(rf_model_grid_search$bestTune == rf_model_grid_search$bestTune$mtry),]
+
+mse_train$RMSE
 
 #predict the test data using the best model
 y_pred <- predict(rf_model_grid_search, newdata = parkinsons[-train_index,])
@@ -713,8 +733,6 @@ print(time.taken)
 #load the model
 load('xgb_model.RData')
 
-xgb_model$bestTune
-
 varimpo_xgboost <- ggplot(varImp(xgb_model), as.table = TRUE)
 #save the plot
 ggsave('varimpo_xgboost.png', varimpo_xgboost)
@@ -735,14 +753,14 @@ mean((y_pred - parkinsons$total_UPDRS[-train_index])^2)
 
 ## Question 3b
 
-The table below shows the MSE of the 4 different models. XGBoost produces the least MSE, and we shall choose it as the best model and use it to test the data performance with Q3testing.csv.
+The table below shows the test MSE of the 4 different models. Random forests produces the least MSE but an R squared of 51% and the parameters at best tune seem to overfit the model. So we shall choose XGBoost as the best model and use it to test the data performance with Q3testing.csv.
 
-| Model         | MSE   |
-|---------------|-------|
-| Elastic net   | 95.59 |
-| KNN           | 14.90 |
-| Random forest | 19.70 |
-| XGBoost       | 9.00  |
+| Model            | MSE   |
+|------------------|-------|
+| Elastic net (L1) | 95.59 |
+| KNN              | 14.90 |
+| Random forest    | 8.77  |
+| XGBoost          | 9.00  |
 
 Below is the plot showing the RMSE of the XGBoost model. The selected model has a depth of 8. There is a low RMSE however its weakness is lack of interpretability. For lesser tree depths, where we have good interpretability, the RMSE has not yet converged.
 
