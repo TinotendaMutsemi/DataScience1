@@ -1,0 +1,336 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{#1}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\BuiltInTok}[1]{#1}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\ImportTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{#1}}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{#1}}}}
+\usepackage{longtable,booktabs,array}
+\usepackage{calc} % for calculating minipage widths
+% Correct order of tables after \paragraph or \subparagraph
+\usepackage{etoolbox}
+\makeatletter
+\patchcmd\longtable{\par}{\if@noskipsec\mbox{}\fi\par}{}{}
+\makeatother
+% Allow footnotes in longtable head/foot
+\IfFileExists{footnotehyper.sty}{\usepackage{footnotehyper}}{\usepackage{footnote}}
+\makesavenoteenv{longtable}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={Statistical Computing},
+  pdfauthor={Tinotenda Mutsemi (MTSTIN007)},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Statistical Computing}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Assignment 2}
+\author{Tinotenda Mutsemi (MTSTIN007)}
+\date{2024-03-05}
+
+\begin{document}
+\maketitle
+
+\hypertarget{question-1}{%
+\section{Question 1}\label{question-1}}
+
+\hypertarget{question-1a}{%
+\section{Question 1a}\label{question-1a}}
+
+We show that conditional priors:
+
+\[
+[\beta|\sigma^2] \sim \mathcal{N}_{k+1}(\boldsymbol{\mu_\beta}, \sigma^2 (\boldsymbol{M + X^TX})^{-1})
+\]
+
+\[
+[\sigma^2] \sim \mathcal{IG}(a + \frac{n}{2},b + \frac{A_2}{2})
+\]
+
+\hypertarget{question-1b}{%
+\section{Question 1b}\label{question-1b}}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\#Using data from the preamble}
+
+
+\CommentTok{\# Compute beta hat using the provided formula}
+\NormalTok{beta.hat }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(}\FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ X) }\SpecialCharTok{\%*\%} \FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ Y}
+
+\CommentTok{\# Define M matrix}
+\NormalTok{M }\OtherTok{\textless{}{-}} \FunctionTok{diag}\NormalTok{(}\FunctionTok{ncol}\NormalTok{(X))}
+
+\CommentTok{\# Calculate mu\_beta using the formula from the image}
+\NormalTok{mu.beta }\OtherTok{\textless{}{-}} \FunctionTok{solve}\NormalTok{(M }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ X) }\SpecialCharTok{\%*\%}\NormalTok{ ((}\FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ Y) }\SpecialCharTok{+}\NormalTok{ M }\SpecialCharTok{\%*\%}\NormalTok{ beta.hat)}
+
+\CommentTok{\# Calculate A2 using the formula from the image}
+\NormalTok{A2 }\OtherTok{\textless{}{-}} \FunctionTok{t}\NormalTok{(Y) }\SpecialCharTok{\%*\%}\NormalTok{ Y }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(beta.hat) }\SpecialCharTok{\%*\%}\NormalTok{ M }\SpecialCharTok{\%*\%}\NormalTok{ beta.hat }\SpecialCharTok{{-}} \FunctionTok{t}\NormalTok{(mu.beta) }\SpecialCharTok{\%*\%}\NormalTok{ (M }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ X) }\SpecialCharTok{\%*\%}\NormalTok{ mu.beta}
+
+\CommentTok{\# mu.beta}
+\CommentTok{\# A2}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{posterior }\OtherTok{\textless{}{-}} \ControlFlowTok{function}\NormalTok{(X, M, mu.beta, A2, a, b, }\AttributeTok{n\_iter =} \DecValTok{1000}\NormalTok{) \{}
+ 
+  \CommentTok{\# Placeholder for the samples}
+\NormalTok{  beta\_samples }\OtherTok{\textless{}{-}} \FunctionTok{matrix}\NormalTok{(}\ConstantTok{NA}\NormalTok{, }\AttributeTok{ncol =} \DecValTok{6}\NormalTok{, }\AttributeTok{nrow =}\NormalTok{ n\_iter)}
+\NormalTok{  sigma2\_samples }\OtherTok{\textless{}{-}} \FunctionTok{numeric}\NormalTok{(n\_iter)}
+  
+  \CommentTok{\# Use the values of mu.beta and A2 computed previously}
+  \CommentTok{\# Assuming that mu.beta and A2 are available in the environment}
+  \CommentTok{\# If not, compute them using the code provided previously}
+  
+  \CommentTok{\# Gibbs sampler}
+  \ControlFlowTok{for}\NormalTok{ (i }\ControlFlowTok{in} \DecValTok{1}\SpecialCharTok{:}\NormalTok{n\_iter) \{}
+    \CommentTok{\# Sample from the inverse{-}gamma distribution for sigma\^{}2}
+\NormalTok{    sigma2\_samples[i] }\OtherTok{\textless{}{-}} \DecValTok{1} \SpecialCharTok{/} \FunctionTok{rgamma}\NormalTok{(}\DecValTok{1}\NormalTok{, }\AttributeTok{shape =}\NormalTok{ a }\SpecialCharTok{+}\NormalTok{ n}\SpecialCharTok{/}\DecValTok{2}\NormalTok{, }\AttributeTok{rate =}\NormalTok{ b }\SpecialCharTok{+}\NormalTok{ A2}\SpecialCharTok{/}\DecValTok{2}\NormalTok{)}
+    
+    \CommentTok{\# Sample from the multivariate normal distribution for beta}
+\NormalTok{    beta\_samples[i, ] }\OtherTok{\textless{}{-}} \FunctionTok{mvrnorm}\NormalTok{(}\DecValTok{1}\NormalTok{, mu.beta, sigma2\_samples[i] }\SpecialCharTok{*} \FunctionTok{solve}\NormalTok{(M }\SpecialCharTok{+} \FunctionTok{t}\NormalTok{(X) }\SpecialCharTok{\%*\%}\NormalTok{ X))}
+\NormalTok{  \}}
+
+  \FunctionTok{return}\NormalTok{(}\FunctionTok{list}\NormalTok{(}\AttributeTok{beta\_samples =}\NormalTok{ beta\_samples, }\AttributeTok{sigma2\_samples =}\NormalTok{ sigma2\_samples))}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{question-1c}{%
+\section{Question 1c}\label{question-1c}}
+
+\hypertarget{question-1ci}{%
+\section{Question 1c(i)}\label{question-1ci}}
+
+The trace plots show the value of each regression coefficient over the
+iterations of the Gibbs sampler. The trace plot is useful for assessing
+the convergence of the Gibbs sampler and the mixing of the Markov chain.
+
+The trace plots show that the Markov chain has converged and the samples
+are well-mixed.
+
+\hypertarget{question-1cii}{%
+\section{Question 1c(ii)}\label{question-1cii}}
+
+The density plots show the posterior distribution of each regression
+coefficient. The density plots provide a visual representation of the
+uncertainty in the estimates of the regression coefficients.
+
+Credibility intervals differ from confidence intervals in that they are
+based on the posterior distribution of the parameter of interest, rather
+than the sampling distribution. The credibility intervals provide a
+range of values within which the true parameter value is likely to lie,
+given the data and the model.
+
+\begin{longtable}[]{@{}lllllll@{}}
+\caption{95\% credibility intervals of the regression
+coefficients}\tabularnewline
+\toprule\noalign{}
+Interval & intercept & B1 & B2 & B3 & B4 & B5 \\
+\midrule\noalign{}
+\endfirsthead
+\toprule\noalign{}
+Interval & intercept & B1 & B2 & B3 & B4 & B5 \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+2.5\% & 0.906 & -0.252 & 9.700 & -0.226 & 1.735 & -3.173 \\
+97.5\% & 1.239 & 0.057 & 10.031 & 0.116 & 2.048 & -2.818 \\
+\end{longtable}
+
+\hypertarget{question-1ciii}{%
+\section{Question 1c(iii)}\label{question-1ciii}}
+
+Using the credibility intervals, the variables worth keeping in the
+model are those whose credibility intervals do not include zero. In this
+case, the variables X2, X4, X5 are worth keeping in the model, as their
+credibility intervals do not include zero.
+
+\hypertarget{question-1d}{%
+\section{Question 1d}\label{question-1d}}
+
+We can use \([\sigma^2|\beta,y,X]\) but that would show us the variation
+of the in the data that is not explained by the model, this however does
+not give us the effect of each predictor variable.
+\([\beta|\sigma^2,y,X]\) gives us the effect of each variable, which is
+the goal.
+
+\hypertarget{question-2}{%
+\section{Question 2}\label{question-2}}
+
+\hypertarget{question-2a}{%
+\section{Question 2a}\label{question-2a}}
+
+\hypertarget{question-2b}{%
+\section{Question 2b}\label{question-2b}}
+
+The occurence probability for any new search is the probability that the
+fisherman is in a particular cell (that is \(Y_i\) = 1 ) given thatwe
+could not find him in the previous search (that is \(Z_i\) = 0). The
+occurence probability therefore follows the posteria distribution
+\(\pi(Y_i = 1|Z_i = 0)\).
+
+\hypertarget{question-2c}{%
+\section{Question 2c}\label{question-2c}}
+
+The fisherman was found on the second hour, second search cell. The
+posterior distribution for the location of the fisherman increased to
+0.038 at the time he was found, from 0.035 at the time of the first
+search.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Generate the prior distribution for the location of the lost fisherman}
+\NormalTok{prior\_distribution }\OtherTok{\textless{}{-}} \FunctionTok{generate\_lost}\NormalTok{(search\_size, }\DecValTok{1000}\NormalTok{)}
+
+\CommentTok{\# Generate the true location of the lost fisherman}
+\NormalTok{true\_grid }\OtherTok{\textless{}{-}} \FunctionTok{generate\_fisherman}\NormalTok{(search\_size)}
+
+\NormalTok{initial\_posteria\_distribution }\OtherTok{\textless{}{-}}\NormalTok{ prior\_distribution }\SpecialCharTok{*}\NormalTok{ detect\_pr}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Search and rescue simulation}
+\NormalTok{hours\_passed }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{found }\OtherTok{\textless{}{-}} \ConstantTok{FALSE}
+
+\ControlFlowTok{while}\NormalTok{(}\SpecialCharTok{!}\NormalTok{found }\SpecialCharTok{\&}\NormalTok{ hours\_passed }\SpecialCharTok{\textless{}} \DecValTok{48}\NormalTok{)\{}
+\NormalTok{  posteria\_distribution }\OtherTok{\textless{}{-}}\NormalTok{ prior\_distribution }\SpecialCharTok{*}\NormalTok{ detect\_pr}
+\NormalTok{  target\_cell }\OtherTok{\textless{}{-}} \FunctionTok{which}\NormalTok{(posteria\_distribution }\SpecialCharTok{==} \FunctionTok{max}\NormalTok{(posteria\_distribution), }\AttributeTok{arr.ind =} \ConstantTok{TRUE}\NormalTok{)}
+  
+  \CommentTok{\# Simulate search with a Bernoulli trial}
+\NormalTok{  found }\OtherTok{\textless{}{-}} \FunctionTok{rbinom}\NormalTok{(}\DecValTok{1}\NormalTok{, }\DecValTok{1}\NormalTok{, detect\_pr[target\_cell[}\DecValTok{1}\NormalTok{], target\_cell[}\DecValTok{2}\NormalTok{]]) }\SpecialCharTok{==} \DecValTok{1}
+  \ControlFlowTok{if}\NormalTok{ (found)\{}
+    \FunctionTok{print}\NormalTok{(}\FunctionTok{paste}\NormalTok{(}\StringTok{"Fisherman found at"}\NormalTok{, target\_cell[}\DecValTok{1}\NormalTok{], target\_cell[}\DecValTok{2}\NormalTok{], }\StringTok{"in hour"}\NormalTok{, hours\_passed }\SpecialCharTok{+} \DecValTok{1}\NormalTok{))}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+    \CommentTok{\# Update prior\_distribution using Bayes’ Theorem}
+\NormalTok{    prior\_distribution[target\_cell[}\DecValTok{1}\NormalTok{], target\_cell[}\DecValTok{2}\NormalTok{]] }\OtherTok{\textless{}{-}} \DecValTok{0}
+\NormalTok{    prior\_distribution }\OtherTok{\textless{}{-}}\NormalTok{ prior\_distribution }\SpecialCharTok{/} \FunctionTok{sum}\NormalTok{(prior\_distribution)}
+\NormalTok{    hours\_passed }\OtherTok{\textless{}{-}}\NormalTok{ hours\_passed }\SpecialCharTok{+} \DecValTok{1}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\ControlFlowTok{if}\NormalTok{ (}\SpecialCharTok{!}\NormalTok{found)\{}
+  \FunctionTok{print}\NormalTok{(}\StringTok{"Fisherman not found in 48 hours."}\NormalTok{)}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\hypertarget{question-2d}{%
+\section{Question 2d}\label{question-2d}}
+
+If the detection distribution was a constant over the search grid, then
+the combined probability distribution would be the same as the prior
+distribution. This is because the detection distribution would not
+provide any additional information to the search crew.
+
+This will simplify the search process as the search algorithim would not
+have to update the prior distribution using Bayes' Theorem. The
+algorithm would simply search the cell with the highest probability of
+containing the fisherman at each time step.
+
+\end{document}

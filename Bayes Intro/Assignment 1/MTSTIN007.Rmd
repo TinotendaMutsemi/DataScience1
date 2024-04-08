@@ -1,0 +1,308 @@
+---
+title: "Statistical Computing"
+subtitle: "Assignment 2"
+author: "Tinotenda Mutsemi (MTSTIN007)"
+date: "2024-03-05"
+output: 
+  pdf_document:
+    keep_tex: true
+  html_document:
+    keep_md: true
+    
+execute: 
+  echo: true
+  eval: false
+  warning: false
+  message: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+```
+
+```{r}
+#preample
+
+# Packages required
+require(MASS)
+require(cubature)
+
+#Lets simulate some data
+set.seed(2021)
+
+n = 150 # Number of data points
+
+X.c = data.frame(matrix(rnorm(5*n), ncol=5))
+colnames(X.c) = c("X1", "X2", "X3", "X4", "X5")
+
+X = as.matrix(cbind(1, X.c)) # Design matrix
+
+e = matrix(rnorm(n), ncol=1) # Errors
+
+beta.true = matrix(c(1, 0, 10, 0, 2, -3), ncol=1)
+
+Y = X%*%beta.true + e # Observations
+
+```
+# Question 1
+
+# Question 1a
+We show that conditional priors:
+
+$$
+[\beta|\sigma^2] \sim \mathcal{N}_{k+1}(\boldsymbol{\mu_\beta}, \sigma^2 (\boldsymbol{M + X^TX})^{-1})
+$$
+
+$$
+[\sigma^2] \sim \mathcal{IG}(a + \frac{n}{2},b + \frac{A_2}{2})
+$$
+
+
+# Question 1b
+
+```{r echo=TRUE}
+#Using data from the preamble
+
+
+# Compute beta hat using the provided formula
+beta.hat <- solve(t(X) %*% X) %*% t(X) %*% Y
+
+# Define M matrix
+M <- diag(ncol(X))
+
+# Calculate mu_beta using the formula from the image
+mu.beta <- solve(M + t(X) %*% X) %*% ((t(X) %*% Y) + M %*% beta.hat)
+
+# Calculate A2 using the formula from the image
+A2 <- t(Y) %*% Y + t(beta.hat) %*% M %*% beta.hat - t(mu.beta) %*% (M + t(X) %*% X) %*% mu.beta
+
+# mu.beta
+# A2
+
+```
+
+```{r echo=TRUE}
+
+posterior <- function(X, M, mu.beta, A2, a, b, n_iter = 1000) {
+ 
+  # Placeholder for the samples
+  beta_samples <- matrix(NA, ncol = 6, nrow = n_iter)
+  sigma2_samples <- numeric(n_iter)
+  
+  # Use the values of mu.beta and A2 computed previously
+  # Assuming that mu.beta and A2 are available in the environment
+  # If not, compute them using the code provided previously
+  
+  # Gibbs sampler
+  for (i in 1:n_iter) {
+    # Sample from the inverse-gamma distribution for sigma^2
+    sigma2_samples[i] <- 1 / rgamma(1, shape = a + n/2, rate = b + A2/2)
+    
+    # Sample from the multivariate normal distribution for beta
+    beta_samples[i, ] <- mvrnorm(1, mu.beta, sigma2_samples[i] * solve(M + t(X) %*% X))
+  }
+
+  return(list(beta_samples = beta_samples, sigma2_samples = sigma2_samples))
+}
+
+
+```
+
+# Question 1c
+
+```{r}
+posterior_samples <- posterior(X, M, mu.beta, A2, a = 1, b = 1, n_iter = 50000)
+
+# Extract the samples
+beta_samples <- posterior_samples$beta_samples
+sigma2_samples <- posterior_samples$sigma2_samples
+
+```
+
+# Question 1c(i)
+
+The trace plots show the value of each regression coefficient over the iterations of the Gibbs sampler. The trace plot is useful for assessing the convergence of the Gibbs sampler and the mixing of the Markov chain.
+
+The trace plots show that the Markov chain has converged and the samples are well-mixed.
+
+```{r eval=FALSE}
+# trace plot for regression coefficients
+par(mfrow = c(2, 3))
+for (i in 1:6) {
+  plot(beta_samples[, i], type = "l", xlab = "Iteration", ylab = "Value", main = paste("Beta", i))
+}
+
+#save the plot
+dev.copy(png, file="trace_plot.png")
+dev.off()
+
+```
+
+# Question 1c(ii)
+
+The density plots show the posterior distribution of each regression coefficient. The density plots provide a visual representation of the uncertainty in the estimates of the regression coefficients.
+
+Credibility intervals differ from confidence intervals in that they are based on the posterior distribution of the parameter of interest, rather than the sampling distribution. The credibility intervals provide a range of values within which the true parameter value is likely to lie, given the data and the model.
+
+| Interval | intercept | B1     | B2     | B3     | B4    | B5     |
+|----------|-----------|--------|--------|--------|-------|--------|
+| 2.5%     | 0.906     | -0.252 | 9.700  | -0.226 | 1.735 | -3.173 |
+| 97.5%    | 1.239     | 0.057  | 10.031 | 0.116  | 2.048 | -2.818 |
+
+: 95% credibility intervals of the regression coefficients
+
+```{r}
+#95% credible intervals for the regression coefficients
+beta_credible_intervals <- apply(beta_samples, 2, function(x) quantile(x, c(0.025, 0.975)))
+  
+```
+
+# Question 1c(iii)
+
+Using the credibility intervals, the variables worth keeping in the model are those whose credibility intervals do not include zero. In this case, the variables X2, X4, X5 are worth keeping in the model, as their credibility intervals do not include zero.
+
+# Question 1d
+
+We can use $[\sigma^2|\beta,y,X]$ but that would show us the variation of the in the data that is not explained by the model, this however does not give us the effect of each predictor variable. $[\beta|\sigma^2,y,X]$ gives us the effect of each variable, which is the goal.
+
+
+# Question 2
+
+# Question 2a
+
+# Question 2b
+
+The occurence probability for any new search is the probability that the fisherman is in a particular cell (that is $Y_i$ = 1 ) given thatwe could not find him in the previous search (that is $Z_i$ = 0). The occurence probability therefore follows the posteria distribution $\pi(Y_i = 1|Z_i = 0)$.
+
+
+# Question 2c
+
+The fisherman was found on the second hour, second search cell. The posterior distribution for the location of the fisherman increased to 0.038 at the time he was found, from 0.035 at the time of the first search.
+```{r}
+#### Required Functions ####
+
+library(ggplot2)
+library(MASS)
+
+#### Data Generating Functions ####
+
+generate_lost <- function(grid_size, nsims){
+  
+  # Function to generate the prior distribution for the 
+  # location of the lost fisherman
+  # Args: 
+  #       grid_size: the dimensions of the square search grid
+  #       nsims: number of samples to base the prior distribution on
+  
+  mu_vec  <- c(grid_size/2, grid_size/2)
+  sig_mat <- matrix(c(2, 1, 5, 5), 2,2)
+  
+  dat <- mvrnorm(nsims, mu_vec, sig_mat)
+  dat <- round(abs(dat))
+  
+  prior <- matrix(rep(0,grid_size^2), grid_size, grid_size)
+  for (i in 1:NROW(dat)){
+    
+    if (dat[i,1] < grid_size & dat[i,2] < grid_size){
+      prior[dat[i,1], dat[i,2]] <- prior[dat[i,1], dat[i,2]] + 1
+    }
+    
+  }
+  prior <- prior/sum(prior)
+  return(prior)
+}
+
+generate_fisherman <- function(grid_size){
+  
+  # Function to generate the true location of the lost fisherman.
+  # This should not effect the search decision in any way!! It is unkown
+  # to the search crew.
+  # Args: 
+  #       grid_size: the dimensions of the square search grid
+
+  
+  mu_vec  <- c(grid_size/2, grid_size/2)
+  sig_mat <- matrix(c(2, 1, 5, 5), 2,2)
+  
+  location  <- round(mvrnorm(1, mu_vec, sig_mat))
+  true_grid <- matrix(rep(0, grid_size^2), grid_size, grid_size)
+  true_grid[location[1], location[2]] <- 1
+  
+  return(true_grid)
+}
+
+#### Simulation ####
+
+search_size <- 20
+unifs <- runif(search_size^2, min = 0.6, max = 0.9)
+detect_pr <- matrix(unifs, ncol = search_size)
+
+
+```
+
+```{r echo=TRUE}
+# Generate the prior distribution for the location of the lost fisherman
+prior_distribution <- generate_lost(search_size, 1000)
+
+# Generate the true location of the lost fisherman
+true_grid <- generate_fisherman(search_size)
+
+initial_posteria_distribution <- prior_distribution * detect_pr
+
+
+```
+
+
+```{r echo = TRUE, eval=FALSE}
+
+# Search and rescue simulation
+hours_passed <- 0
+found <- FALSE
+
+while(!found & hours_passed < 48){
+  posteria_distribution <- prior_distribution * detect_pr
+  target_cell <- which(posteria_distribution == max(posteria_distribution), arr.ind = TRUE)
+  
+  # Simulate search with a Bernoulli trial
+  found <- rbinom(1, 1, detect_pr[target_cell[1], target_cell[2]]) == 1
+  if (found){
+    print(paste("Fisherman found at", target_cell[1], target_cell[2], "in hour", hours_passed + 1))
+  } else {
+    # Update prior_distribution using Bayes’ Theorem
+    prior_distribution[target_cell[1], target_cell[2]] <- 0
+    prior_distribution <- prior_distribution / sum(prior_distribution)
+    hours_passed <- hours_passed + 1
+  }
+}
+
+if (!found){
+  print("Fisherman not found in 48 hours.")
+}
+```
+
+```{r eval = FALSE}
+# plot the initial combined probability distribution and the final probability distribution side by side
+par(mfrow = c(1, 2))
+image(1:search_size, 1:search_size, initial_combined_pr, col = heat.colors(12), xlab = "x", ylab = "y")
+image(1:search_size, 1:search_size, combined_pr, col = heat.colors(12), xlab = "x", ylab = "y")
+
+#save the plot
+dev.copy(png, file = "combined_pr.png")
+```
+
+```{r eval = FALSE}
+# get the combined probability in tage cell
+initial_posteria_distribution[target_cell[1], target_cell[2]]
+posteria_distribution[target_cell[1], target_cell[2]]
+
+```
+
+
+
+# Question 2d
+
+If the detection distribution was a constant over the
+search grid, then the combined probability distribution would be the same as the prior distribution. This is because the detection distribution would not provide any additional information to the search crew.
+
+This will simplify the search process as the search algorithim would not have to update the prior distribution using Bayes’ Theorem. The algorithm would simply search the cell with the highest probability of containing the fisherman at each time step.
+
