@@ -1,0 +1,60 @@
+
+```{r}
+geostat_pkgs <- c("sf", "sp", "geoR",  "gstat", "automap", "intamap", "tidyverse", "pacman", "tmap", "tmaptools", "spData",
+                  "elevatr", "stars")
+install.packages(geostat_pkgs )
+remotes::install_github("wmgeolab/rgeoboundaries")
+```
+
+
+```{r}
+pacman::p_load(skimr, sf, sp, gstat, stars, tidyverse,tmap, tmaptools, spData, rgdal, raster, maptools, GGally, rgeoboundaries, elevatr)
+```
+
+```{r}
+library(sf)
+library(ggplot2)
+
+# set the seed for the random number generator
+set.seed(4)
+
+# Create a sixteen square polygon
+bb <- st_make_grid(st_bbox(c(xmin = 0, xmax = 10, ymin = 0, ymax = 10)), n = 10)
+grd <- st_as_sf(bb)
+grd$ID <- 1:length(bb)
+
+
+
+# Generate simple random sample
+test <- st_sample(grd, size = 100, type = "random")
+
+ggplot() + 
+  geom_sf(data = grd) + 
+  geom_sf(data = test) + 
+  ggtitle("Simple")
+```
+
+```{r}
+# Generate systematic random sample
+test <- st_sample(grd, size = 10, type = "regular")
+
+ggplot() + 
+  geom_sf(data = grd) + 
+  geom_sf(data = test) + 
+  ggtitle("Systematic")
+```
+
+
+```{r}
+# Generate stratified random sample
+grd2 <- st_cast(grd, "MULTIPOLYGON")
+st_crs(grd2) <- 5070
+
+test <- st_sample(grd2, size = 100, type = "random", by_polygon = TRUE)
+
+ggplot() + 
+  geom_sf(data = grd) + 
+  geom_sf(data = test) + 
+  ggtitle("Stratified")
+```
+

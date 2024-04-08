@@ -50,6 +50,11 @@ plot(qcp, d2_ord, main="Chi-square plot", pch = 16,
 title(ylab = expression(d[(j)]^2), line = 2)
 abline(a = 0, b = 1, col = 'red')
 
+#Find proportion of points that are within the 50% quantile
+sum(d2 < qcp[0.5 * n])/n
+
+
+n
 
 ```
 
@@ -60,6 +65,9 @@ shapiro.test(data2$MaxBreadth)
 shapiro.test(data2$BasHeight)
 shapiro.test(data2$BasLength)
 shapiro.test(data2$NasHeight)
+
+```
+```{r}
 
 ```
 

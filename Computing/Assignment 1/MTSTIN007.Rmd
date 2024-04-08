@@ -1,0 +1,306 @@
+---
+title: "Statistical Computing"
+subtitle: "Assignment 1"
+author: "Tinotenda Mutsemi (MTSTIN007)"
+date: "2024-03-16"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Question 1
+
+```{r}
+
+fx <- function(x, a){
+  return(a * x*exp(-4*x))
+}
+```
+
+## Question 1a
+
+Using $a = 16$, the integral is 1. Showing that $f(x)$ is a valid probability density function when $a = 16$.
+
+```{r}
+#using integrate function to find the integral
+integrate(fx, lower = 0, upper = Inf, a = 16)
+```
+
+## Question 1b
+
+We shall use the Metropolis-Hastings algorithm to generate 1000 random numbers from the distribution of $f(x)$. We then use the accepted values to calculate the mean. Using this mean and the sampled values, we calculate the variance of the sampled values. The variance is 0.115 and with a standard error of 0.0034.
+
+```{r}
+set.seed(123)
+#proposal distribution
+q <- function(x){
+  return(rnorm(1, mean = x, sd = 1))
+}
+
+x0 <- 1
+N <- 10000
+x <- numeric(N)
+x[1] <- x0
+
+for (i in 2:N){
+  x_star <- q(x[i-1])
+  if (x_star < 0){
+    x_star <- -x_star
+  }
+  alpha <- min(1, fx(x_star, a = 16)/fx(x[i-1], a = 16))
+  u <- runif(1, 0, 1)
+  if (u < alpha){
+    x[i] <- x_star
+  }else{
+    x[i] <- x[i-1]
+  }
+}
+
+#burn in
+x <- x[1000:N]
+
+#plot autocorrelation
+acf(x)
+
+xbar <- sum(x)/N
+varX <- sum((x - xbar)**2)/(N-1)
+varX
+
+#standard error of the estimate
+sqrt(varX/N)
+
+```
+
+## Question 1c
+
+$$ xval = 
+\begin{bmatrix}
+1.083 \\
+0.293 \\
+0.011
+\end{bmatrix}
+$$
+
+```{r}
+eval <- c()
+
+x <- c(0.5, 1, 2)
+
+eval <- fx(x, a = 16)
+round(eval, 3)
+
+```
+
+## Question 1d
+
+```{r}
+x <- seq(0, 2, 0.01)
+y <- fx(x, a = 16)
+
+plot(x, y, type = "l", col = "blue", xlab = "x", ylab = "f(x)")
+```
+
+## Question 1e
+
+Using the optimize function, we find the value of x that maximizes $f(x)$ is 0.250.
+
+```{r}
+#val of x that maximizes f(x)
+opt <- optimize(fx, interval = c(0, 2), a = 16, maximum = TRUE)
+xopt <- opt$maximum
+xopt
+```
+
+## Question 1f
+
+-We know the value of x that maximizes f(x) is 0.250. We shall use this value to find the value of x that minimizes h(x), by making x range in [0, xopt] and [xopt, 2]. This way we cover the whole range, without getting stuck in one minimum. The values of x that minimizes \$\$h(x)\$\$ are 0.040 and 0.781
+
+```{r}
+gx <- function(x, a){
+  return(fx(x, a) - 0.55)
+}
+
+hx <- function(x, a){
+  return(abs(gx(x, a)))
+}
+
+```
+
+```{r}
+#plot hx
+x <- seq(0, 2, 0.01)
+y <- hx(x, a = 16)
+
+plot(x, y, type = "l", col = "blue", xlab = "x", ylab = "h(x)")
+```
+
+```{r}
+#using the optimize function to find the value of x that minimizes h(x)
+opt1 <- optimize(hx, interval = c(0, xopt), a = 16, maximum = FALSE)
+opt1$minimum
+
+opt2 <- optimize(hx, interval = c(xopt, 2), a = 16, maximum = FALSE)
+opt2$minimum
+
+```
+
+## Question 1g
+
+```{r}
+
+sampler <- function(x0, xopt, xlo, xhi){
+
+  fx0 <- fx(x0, a = 16)
+  
+  y <- runif(1, 0, fx0)
+  
+  gx <- function(x, a){
+    return(fx(x, a) - y)
+  }
+  
+  hx <- function(x, a){
+    return(abs(gx(x, a)))
+  }
+  
+  #using the optimize function to find the value of x that minimizes h(x)
+  opt1 <- optimize(hx, interval = c(0, xopt), a = 16, maximum = FALSE)
+  xl <- opt1$minimum
+  
+  opt2 <- optimize(hx, interval = c(xopt, 2), a = 16, maximum = FALSE)
+  xh <- opt2$minimum
+  
+  xnew <- runif(1, xl, xh)
+  
+  return(xnew)
+}
+
+
+```
+
+```{r}
+set.seed(123)
+xlo <- 0
+xhi <- 5
+
+xopt <- 0.2500085
+
+x0 <- runif(1, xlo, xhi)
+
+samples <- replicate(50000, sampler(x0, xopt, xlo, xhi))
+
+#take last half of samples
+samples <- samples[25001:50000]
+
+
+```
+
+## Question 1h
+
+The variance of numerical intergration was 0.115 and the variance of samples is 0.179, with a standard error of 0.0027. The variance of the samples is higher than the variance of the numerical integration.
+
+```{r}
+
+
+#calculate mean and variance of samples
+mean(samples)
+var(samples)
+
+#standard error of the estimate
+sqrt(var(samples)/length(samples))
+
+
+#plot hist of samples
+
+hist(samples, breaks = 50, freq = FALSE)
+#superimpose the true density
+x <- seq(0, 2, 0.01)
+y <- fx(x, a = 16)
+lines(x, y, col = "blue")
+#show y axis from 0 to 1
+axis(2, at = seq(0, 1, 0.1))
+
+
+
+```
+
+## Question 1i
+
+$$
+var(\hat{\mu}) = \frac{s^2}{n} = \frac{1}{n(n-1)} \sum_{i=1}^{n} (x_i - \bar{x})^2
+$$
+
+```{r}
+#calculate variance of samples
+# s2 <- var(samples)
+xbar <- sum(x)/N
+varX <- sum((x - xbar)**2)/(N-1)
+varX
+
+#standard error of the estimate
+sqrt(varX/N)
+
+```
+
+# Question 2
+
+We obtain the same solution of $(1.67, 0)$, using R and our own gradient-descent algorithm.
+
+We then plot the contour plot, showing how the gradient gets smaller as we approach $(1.67, 0)$
+
+```{r}
+
+fxy <- function(x, y){
+  return((3*x - 5)**2 + y**2 + (y**3 - x**3)/1000)
+}
+
+dx <- function(x){
+  return(18*x - 30 - 3*x**2/1000)
+}
+
+dy <- function(y){
+  return(2*y + 3*y**2/1000)
+}
+
+
+gradDescent <- function(x0, y0, alpha){
+  z0 <- c(x0, y0)
+  grad0 <- c(dx(x0), dy(y0))
+  while (sum(grad0**2) > 1*10**(-10)){
+    z1 <- z0 - alpha*grad0
+    grad1 <- c(dx(z1[1]), dy(z1[2]))
+    z0 <- z1
+    grad0 <- grad1
+  }
+  return(z0)
+}
+
+
+```
+
+```{r}
+alpha <- 0.01
+x0 <- 15
+y0 <- 20
+
+
+opt_own <- gradDescent(x0, y0, alpha)
+opt_own
+
+```
+
+```{r}
+#plot contour
+x <- seq(-5, 5, 0.1)
+y <- seq(-5, 5, 0.1)
+z <- outer(x, y, fxy)
+
+contour(x, y, z, xlab = "x", ylab = "y")
+```
+
+```{r}
+#using optimize function
+optimize(fxy, interval = c(0, 20), y = 20, maximum = FALSE)
+
+optimize(fxy, interval = c(0, 20), x = 15, maximum = FALSE)
+
+```

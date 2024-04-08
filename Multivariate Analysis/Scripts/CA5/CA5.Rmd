@@ -1,0 +1,220 @@
+---
+title: "Statistical Computing"
+subtitle: "Assignment 1"
+author: "Tinotenda Mutsemi (MTSTIN007)"
+date: "2024-03-16"
+
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+# Question 1
+
+
+```{r echo=FALSE}}
+library(dplyr)
+#load data CA1.csv
+data <- read.csv("CA1.csv")
+
+#select time period 1
+data1 <- filter(data, TimePeriod == 1)
+#deselct TimePeriod column
+data1 <- dplyr::select(data1, -TimePeriod)
+```
+
+
+
+```{r echo=FALSE}
+#get mean vector
+xbar <- colMeans(data1)
+
+#get covariance matrix
+S <- cov(data1)
+
+n <- nrow(data1)
+n
+alpha <- 0.05
+p <- ncol(data1)
+p
+
+
+```
+
+```{r echo=FALSE}}
+#individual T
+t <- qt(1-alpha/2, n-1)
+
+mu1_lower <- xbar[1] - t*sqrt(S[1,1]/n)
+mu1_upper <- xbar[1] + t*sqrt(S[1,1]/n)
+
+mu2_lower <- xbar[2] - t*sqrt(S[2,2]/n)
+mu2_upper <- xbar[2] + t*sqrt(S[2,2]/n)
+
+mu3_lower <- xbar[3] - t*sqrt(S[3,3]/n)
+mu3_upper <- xbar[3] + t*sqrt(S[3,3]/n)
+
+mu4_lower <- xbar[4] - t*sqrt(S[4,4]/n)
+mu4_upper <- xbar[4] + t*sqrt(S[4,4]/n)
+
+t_ci <- data.frame(rbind(cbind(mu1_lower, mu1_upper), 
+           cbind(mu2_lower, mu2_upper),
+           cbind(mu3_lower, mu3_upper),
+           cbind(mu4_lower, mu4_upper)))
+
+#rename columns 
+lookup <- c(
+  
+  lower = "mu1_lower",
+  upper = "mu1_upper"
+)
+
+t_ci <- rename(t_ci, all_of(lookup))
+
+#add column t
+t_ci <- cbind(t_ci, method = 't')
+
+t_ci <- cbind(t_ci, variable = c('MaxBreadth', 'BasHeight', 'BasLength', 'NasHeight'))
+t_ci
+
+```
+
+
+```{r echo=FALSE}
+c2 <- ((n-1)*p)/(n-p)*qf(1-alpha, p, n-p)
+
+## Simultaneous T^2 Intervals
+mu1_lower <- xbar[1] - sqrt(c2)*sqrt(S[1,1]/n)
+mu1_upper <- xbar[1] + sqrt(c2)*sqrt(S[1,1]/n)
+
+mu2_lower <- xbar[2] - sqrt(c2)*sqrt(S[2,2]/n)
+mu2_upper <- xbar[2] + sqrt(c2)*sqrt(S[2,2]/n)
+
+mu3_lower <- xbar[3] - sqrt(c2)*sqrt(S[3,3]/n)
+mu3_upper <- xbar[3] + sqrt(c2)*sqrt(S[3,3]/n)
+
+mu4_lower <- xbar[4] - sqrt(c2)*sqrt(S[4,4]/n)
+mu4_upper <- xbar[4] + sqrt(c2)*sqrt(S[4,4]/n)
+
+simultaneous_ci <- data.frame(rbind(cbind(mu1_lower, mu1_upper), 
+           cbind(mu2_lower, mu2_upper),
+           cbind(mu3_lower, mu3_upper),
+           cbind(mu4_lower, mu4_upper)))
+
+#rename columns
+lookup <- c(
+  
+  lower = "mu1_lower",
+  upper = "mu1_upper"
+)
+
+simultaneous_ci <- rename(simultaneous_ci, all_of(lookup))
+
+#add column t
+simultaneous_ci <- cbind(simultaneous_ci, method = 'simultaneous')
+
+simultaneous_ci <- cbind(simultaneous_ci, variable = c('MaxBreadth', 'BasHeight', 'BasLength', 'NasHeight'))
+simultaneous_ci
+
+```
+
+
+
+
+```{r echo=FALSE}
+#benfelloni confidence interval
+## Bonferroni intervals
+mu1_lower <- (round(xbar[1] - qt(1-alpha/(2*p), n-1)*sqrt(S[1,1]/n), 3))
+mu1_upper <- (round(xbar[1] + qt(1-alpha/(2*p), n-1)*sqrt(S[1,1]/n), 3))
+
+mu2_lower <- (round(xbar[2] - qt(1-alpha/(2*p), n-1)*sqrt(S[2,2]/n), 3))
+mu2_upper <- (round(xbar[2] + qt(1-alpha/(2*p), n-1)*sqrt(S[2,2]/n), 3))
+
+mu3_lower <- (round(xbar[3] - qt(1-alpha/(2*p), n-1)*sqrt(S[1,1]/n), 3))
+mu3_upper <- (round(xbar[3] + qt(1-alpha/(2*p), n-1)*sqrt(S[1,1]/n), 3))
+
+mu4_lower <- (round(xbar[4] - qt(1-alpha/(2*p), n-1)*sqrt(S[2,2]/n), 3))
+mu4_upper <- (round(xbar[4] + qt(1-alpha/(2*p), n-1)*sqrt(S[2,2]/n), 3))
+
+bonferroni_ci <- data.frame(rbind(cbind(mu1_lower, mu1_upper), 
+           cbind(mu2_lower, mu2_upper),
+           cbind(mu3_lower, mu3_upper),
+           cbind(mu4_lower, mu4_upper)))
+
+#rename columns
+lookup <- c(
+  
+  lower = "mu1_lower",
+  upper = "mu1_upper"
+)
+
+bonferroni_ci <- rename(bonferroni_ci, all_of(lookup))
+
+#add column benferroni
+bonferroni_ci <- cbind(bonferroni_ci, method = 'bonferroni')
+
+bonferroni_ci <- cbind(bonferroni_ci, variable = c('MaxBreadth', 'BasHeight', 'BasLength', 'NasHeight'))
+bonferroni_ci
+
+
+
+```
+
+```{r}
+#plot the confidence intervals 
+library(ggplot2)
+library(reshape2)
+library(dplyr)
+
+#merge the dataframes
+all_ci <- rbind(t_ci, simultaneous_ci, bonferroni_ci)
+all_ci <- dplyr::select(all_ci, variable, lower, upper, method)
+all_ci
+
+# Prepare for plotting
+all_ci$mid <- with(all_ci, (lower + upper) / 2)
+
+# Define the dodge width
+dodge <- position_dodge(width = 0.25)
+
+
+# Plot
+ggplot(all_ci, aes(x = variable, y = mid, color = method)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), position = dodge, width = 0.1) +
+  geom_point(position = dodge) +
+  theme_minimal() +
+  labs(
+    x = 'Variable',
+    y = 'Confidence Interval',
+    color = 'CI Method'  # Rename the legend title
+  ) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_color_brewer(palette = "Set1")
+
+```
+
+
+# Question 2
+
+
+```{r echo=FALSE}
+weight_data <- read.table("CA5.txt", header =TRUE)
+head(weight_data, 12)
+
+xbar <- apply(weight_data, 2, mean)
+xbar
+S <- var(weight_data)
+S
+n <- nrow(weight_data)
+n
+q <- ncol(weight_data)
+q
+#Contrast matrix 1
+(C1 <- cbind(1, diag(-1, q-1)))
+C1
+#Test statistic and p-value
+(T2 <- n*t(C1%*%xbar) %*% solve(C1%*%S%*%t(C1)) %*% (C1%*%xbar))
+1 - pf(T2*(n-q+1)/((n-1)*(q-1)), q-1, n-q+1)
+```
+

@@ -1,0 +1,103 @@
+```{r}
+#qtn 6
+
+fx <- function(x){
+  return(1/(1 + sinh(2*x))*(log(x))**2)
+}
+
+
+#sample 100 from uniform between 0.8 and 3
+x <- runif(100, 0.8, 3)
+y_sample <- fx(x)
+
+#find the mean value
+mean_val <- sum(y_sample)/100
+#integral estimate is the area oft eh uniform
+mc_intgral <- mean_val* (3 - 0.8)
+mc_intgral
+#actual integral value we can get using interate function
+actual_intgral <- integrate(fx, lower = 0.8, upper = 3)
+
+
+#error of the estimate
+actual_intgral$value - mc_intgral
+```
+
+
+```{r}
+#qtn 7
+#monte calro estimate for pi
+#sample 100 points from uniform distribution
+x <- runif(100, -1, 1)
+y <- runif(100, -1, 1)
+
+#find the distance from the origin
+dist <- sqrt(x**2 + y**2)
+
+#find the number of points inside the circle
+inside <- sum(dist < 1)
+
+#p/N = pi/4
+
+#estimate the area of the circle
+mc_estimate <- inside/100 * 4
+mc_estimate
+```
+
+```{r}
+#qtn 8: inverse transform sampling
+x <- runif(1, 0, 1)
+x
+```
+
+
+```{r}
+#qtn 9: antithetic sampling
+fx <- function(x){
+  return(x)
+}
+
+#sample 1000 from uniform distribution between 0 and 1
+x <- runif(1000, 0, 1)
+y <- fx(x)
+
+#find the mean value
+mean_val <- sum(y)/1000
+#integral estimate is the area oft eh uniform
+mc_intgral <- mean_val* (1 - 0)
+mc_intgral
+#actual integral value we can get using interate function
+actual_intgral <- integrate(fx, lower = 0, upper = 1)
+actual_intgral$value
+#error of the estimate
+actual_intgral$value - mc_intgral
+
+
+#antithetic sampling  
+#sample 1000 from uniform distribution between 0 and 1
+x <- runif(500, 0, 1)
+x2 <- 1 - x
+y <- fx(x)
+y2 <- fx(x2)
+
+#find the mean value
+mean_val <- (sum(y) + sum(y2))/1000
+#integral estimate is the area oft eh uniform
+mc_intgral <- mean_val* (1 - 0)
+mc_intgral
+
+
+
+```
+
+```{r}
+
+```
+
+
+
+
+
+
+
+

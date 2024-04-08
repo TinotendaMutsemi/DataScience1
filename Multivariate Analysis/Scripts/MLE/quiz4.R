@@ -21,3 +21,6 @@ qchisq(0.5, 2)
 
 #distances below 0.5 quantile of the chi-squared distribution with 2 degrees of freedom
 sum(distances < qchisq(0.5, 2))/length(distances)
+
+
+

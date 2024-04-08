@@ -1,0 +1,147 @@
+
+```{r}
+#read rdata
+load("J_WEx5.9.Rdata")
+```
+
+
+```{r}
+mu = c(95, 160, 55, 93, 18, 31)
+n <- 61
+p <- 6
+```
+
+
+```{r}
+
+#hotelling t2 statistic
+t2 <- n*t(xbar - mu) %*% solve(S) %*% (xbar - mu)
+
+#calculate the p value
+1- pf(t2*(n-p)/((n-1)*p), p, n-p)
+
+#wilks lambda
+1/(1+ (t2/n-1))
+```
+
+```{r}
+#exact confidence interval for head length
+a = c(0, 0, 0 , 0, 1, 0)
+
+axbar <- t(a) %*% xbar
+
+asa <- t(a) %*% S %*% a
+
+const <- (p*(n-1))/(n*(n-p))
+
+#get F with p and n-p degrees of freedom at alpha = 0.025
+f <- qf(0.025, p, n-p)
+
+axbar - sqrt(const*f*asa)
+axbar + sqrt(const*f*asa)
+
+```
+
+```{r}
+#large sample confidence interval for head length
+
+#get chi sq with p degrees of freedom at alpha = 0.025
+chisq <- qchisq(0.025, p)
+
+axbar - sqrt(chisq)*sqrt(asa/n)
+axbar + sqrt(chisq)*sqrt(asa/n)
+
+```
+
+
+```{r}
+#bonferroni confidence interval for neck i=3
+alpha <- 0.025
+
+xb3 <- xbar[3]
+#t with n-1 degrees of freedom at alpha/2p
+t1 <- qt((1-alpha)/(2*p), n-1)
+t2 <- qt((1-alpha)/(2*p), n-1)
+
+t2
+s <- S[3,3]
+
+xb3 - t1*sqrt(s/n)
+xb3 + t1*sqrt(s/n)
+
+```
+
+```{r}
+#plot values of t distribution
+x <- seq(-4, 4, 0.1)
+y <- dt(x, df = 10)
+plot(x, y, type = "l", col = "blue", xlab = "t", ylab = "f(t)")
+```
+
+
+```{r}
+#get the eigenvalues and eigenvectors of S
+eigen(S)
+```
+
+
+
+
+```{r}
+#ex 5.2 data
+#read T1-4.txt
+T1 <- read.table("T1-4.txt", header = TRUE)
+head(T1)
+
+```
+
+```{r}
+library(dplyr)
+#benfelloni confidence interval
+p <- 4
+n <- 7
+T1_weight <- select(T1, Wt2, Wt3, Wt4, Wt5)
+alpha <- 0.05
+xbar <- colMeans(T1_weight)
+
+c <- c(0,0,-1,1)
+
+cxbar <- t(c) %*% xbar
+
+S <- cov(T1_weight)
+
+s_increase <- S[4,4] + S[3,3]
+
+t <- qt((1-alpha)/(2*p), n-1)
+
+cxbar - t*sqrt(s_increase/n)
+cxbar + t*sqrt(s_increase/n)
+
+
+```
+
+```{r}
+p <- 4
+n <- 7
+T1_len <- select(T1, Lngth2, Lngth3)
+alpha <- 0.05
+xbar <- colMeans(T1_len)
+xbar
+S <- cov(T1_len)
+
+x2 <- xbar[1]
+
+s <- S[2,2]
+
+t <- qt((1-alpha)/(2*p), n-1)
+
+x2 - t*sqrt(s/n)
+x2 + t*sqrt(s/n)
+
+```
+
+```{r}
+```
+
+
+

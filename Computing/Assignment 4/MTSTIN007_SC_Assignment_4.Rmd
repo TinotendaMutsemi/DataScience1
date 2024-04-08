@@ -1,0 +1,287 @@
+---
+title: "Statistical Computing"
+subtitle: "Assignment 4"
+author: "Tinotenda Mutsemi (MTSTIN007)"
+date: "2024-03-16"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+# Question 1a
+
+We carry out a one sided t-test to determine if the mean retinol levels in the blood of infected children is less than the mean retinol levels in the blood of uninfected children.
+
+The null hypothesis is that there is no difference in the mean retinol levels in the blood of infected and uninfected children.
+
+The alternative hypothesis is that the mean retinol levels in the blood of infected children is less than the mean retinol levels in the blood of uninfected children.
+
+The test statistic is -2.168 and the p-value is 0.017. There is enough evidence to suggest that the mean retinol levels in the blood of infected children is less than the mean retinol levels in the blood of uninfected children.
+
+We conclude that recent infection reduces the mean retinol levels in the blood of children.
+
+I expect the permutation distribution to be centered close to the null hypothesis value, in the case of ratios that is 1, meaning there is no difference in the mean retinol levels in the blood of infected and uninfected children.
+
+If we are using the ratio infected/uninfected, given the t-test results, we would expect the permutation ratio to be normally distributed, centered at a value slightly less than 1 and skewed to the left.
+
+```{r}
+#rad rentinol.Rdata
+load("retinol.Rdata")
+
+#do t test
+test_result <- t.test(infected, not.infected, alternative = "less")
+test_result$p.value
+
+```
+
+# Question 1b
+
+The bootstrap estimate of the bias of the estimator E(X)/E(Y) as percentage of the standard error is 1.28%. The 95% confidence interval for the bias is (-0.145, 0.178).
+
+```{r}
+#estimate the bais of not.infected_bar/infected_bar as a percentage of the standard error
+
+# Original sample estimate
+original_estimate <- mean(infected) / mean(not.infected)
+
+set.seed(1234)
+# Bootstrap 
+N <- 1000
+bootstrap_estimates <- numeric(N)
+for (i in 1:N) {
+    infected_star <- sample(infected, replace = TRUE)
+    not.infected_star <- sample(not.infected, replace = TRUE)
+    bootstrap_estimates[i] <- mean(infected_star) / mean(not.infected_star)
+}
+
+# Estimate of the expected value of the bootstrapped estimator
+bootstrapped_expectation <- mean(bootstrap_estimates)
+
+# Estimate the bias
+bias_estimate <- bootstrapped_expectation - original_estimate
+
+
+#standard error of the bootstrap estimate
+standard_error <- sd(bootstrap_estimates)
+
+
+#express the bias as a percentage of the standard error
+bias_percentage <- (bias_estimate / standard_error) * 100
+
+#calculate the 95% confidence interval for the bias
+lower_bound <- quantile(bootstrap_estimates - original_estimate, 0.025)
+upper_bound <- quantile(bootstrap_estimates - original_estimate, 0.975)
+
+
+```
+
+# Question 1c
+
+| CI method     | Lower | Upper |
+|-------------|-------|-------|
+| bootstrap t | 0.638 | 0.958 |
+| percentile  | 0.651 | 0.975 |
+| basic       | 0.621 | 0.944 |
+| BCA         | 0.662 | 0.978 |
+
+: 95% confidence intervals for different methods of confidence intervals.
+
+```{r}
+
+# Calculate the bootstrap t confidence interval
+alpha <- 0.05  # For a 95% confidence interval
+
+# Using the t-distribution to adjust for small sample sizes or skewed distributions
+t_multiplier <- qt(1 - alpha/2, df = N - 1)
+standard_error <- sd(bootstrap_estimates)
+ci_lower <- bootstrapped_expectation - t_multiplier * standard_error
+ci_upper <- bootstrapped_expectation + t_multiplier * standard_error
+
+
+# Calculate the percentile bootstrap confidence interval
+ci_lower <- quantile(bootstrap_estimates, alpha/2)
+ci_upper <- quantile(bootstrap_estimates, 1 - alpha/2)
+
+# Calculate the basic bootstrap confidence interval
+ci_lower <- 2 * bootstrapped_expectation - quantile(bootstrap_estimates, 1 - alpha/2)
+ci_upper <- 2 * bootstrapped_expectation - quantile(bootstrap_estimates, alpha/2)
+
+
+```
+
+```{r}
+
+library(boot)
+
+
+# Prepare data for bootstrapping
+data_list <- list(infected = infected, not_infected = not.infected)
+
+ratio_of_means <- function(data, indices) {
+  infected_sample <- data$infected[indices]
+  not_infected_sample <- data$not_infected[indices]
+  return(mean(infected_sample) / mean(not_infected_sample))
+}
+
+# Combine infected and not_infected into a single data frame with an identifier
+data_combined <- data.frame(
+  value = c(infected, not.infected),
+  group = factor(c(rep("infected", length(infected)), rep("not_infected", length(not.infected))))
+)
+
+# Perform the bootstrap using the strata argument to handle different group sizes
+bootstrap_result <- boot(
+  data = data_combined$value,
+  statistic = function(data, indices) {
+    d <- data_combined[indices,]
+    infected_sample <- d$value[d$group == "infected"]
+    not_infected_sample <- d$value[d$group == "not_infected"]
+    mean(infected_sample) / mean(not_infected_sample)
+  },
+  R = 1000,
+  strata = data_combined$group
+)
+
+# Compute the BCA confidence interval
+bca_ci <- boot.ci(bootstrap_result, type = "bca")
+
+
+```
+
+# Question 1d
+
+| Method      | Coverage |
+|-------------|----------|
+| bootstrap t | 0.947    |
+| percentile  | 0.939    |
+| basic       |   0.941     |
+| BCA         |      0.952    |
+
+: Coverage of the CI methods
+
+```{r}
+library(doParallel)
+
+detectCores()
+
+cl <- makeCluster(10)
+registerDoParallel(cl)
+nx <- 35
+ny <- 55
+
+set.seed(1234)
+
+
+set.seed(1234)
+# Bootstrap 
+N <- 1000
+bootstrap_estimates <- numeric(N)
+
+    
+coverage <- foreach(i = 1:1000, .combine = "rbind") %dopar% {
+      x <- rnorm(nx, 2, 1)
+      y <- rnorm(ny, 1, 1)
+
+      for (i in 1:N) {
+        y_star <- sample(y, replace = TRUE)
+        x_star <- sample(x, replace = TRUE)
+        bootstrap_estimates[i] <- mean(y_star) / mean(x_star)
+      }
+
+      # Estimate of the expected value of the bootstrapped estimator
+      bootstrapped_expectation <- mean(bootstrap_estimates)
+
+
+
+      #calculate coverage of the bootstrap t confidence interval
+      alpha <- 0.05
+      t_multiplier <- qt(1 - alpha/2, df = nx + ny - 2)
+      standard_error <- sd(bootstrap_estimates)
+      ci_lower <- bootstrapped_expectation - t_multiplier * standard_error
+      ci_upper <- bootstrapped_expectation + t_multiplier * standard_error
+
+      if (ci_lower < 1/2 & 1/2 < ci_upper) {
+        coverage_bootstrap_t <- 1
+      } else {
+        coverage_bootstrap_t <- 0
+      }
+      
+      #calculate coverage of the percentile bootstrap confidence interval
+      ci_lower <- quantile(bootstrap_estimates, alpha/2)
+      ci_upper <- quantile(bootstrap_estimates, 1 - alpha/2)
+
+      if (ci_lower < 1/2 & 1/2 < ci_upper) {
+        coverage_percentile <- 1
+      } else {
+        coverage_percentile <- 0
+      }
+      
+      # calculate coverage of the basic bootstrap confidence interval
+      #calculate coverage of the basic bootstrap confidence interval
+      ci_lower <- 2 * bootstrapped_expectation - quantile(bootstrap_estimates, 1 - alpha/2)
+      ci_upper <- 2 * bootstrapped_expectation - quantile(bootstrap_estimates, alpha/2)
+      
+      if (ci_lower < 1/2 & 1/2 < ci_upper) {
+        coverage_basic <- 1
+      } else {
+        coverage_basic <- 0
+      }
+      
+      
+      # Prepare data for bootstrapping
+      data_list <- list(infected = y, not_infected = x)
+      
+      ratio_of_means <- function(data, indices) {
+        infected_sample <- data$infected[indices]
+        not_infected_sample <- data$not_infected[indices]
+        return(mean(infected_sample) / mean(not_infected_sample))
+      }
+      
+      # Combine infected and not_infected into a single data frame with an identifier
+      data_combined <- data.frame(
+        value = c(y, x),
+        group = factor(c(rep("infected", length(y)), rep("not_infected", length(x))))
+      )
+      library(boot)
+      # Perform the bootstrap using the strata argument to handle different group sizes
+      bootstrap_result <- boot(
+        data = data_combined$value,
+        statistic = function(data, indices) {
+          d <- data_combined[indices,]
+          infected_sample <- d$value[d$group == "infected"]
+          not_infected_sample <- d$value[d$group == "not_infected"]
+          mean(infected_sample) / mean(not_infected_sample)
+        },
+        R = 1000,
+        strata = data_combined$group
+      )
+      
+      # Compute the BCA confidence interval
+      bca_ci <- boot.ci(bootstrap_result, type = "bca")
+      
+      ci_lower <- bca_ci$bca[4]
+      ci_upper <- bca_ci$bca[5]
+      
+      if (ci_lower < 1/2 & 1/2 < ci_upper) {
+        coverage_bca <- 1
+      } else {
+        coverage_bca <- 0
+      }
+      return(c(coverage_bootstrap_t, coverage_percentile, coverage_basic, coverage_bca))
+    }
+    
+stopCluster(cl)
+
+coverage <- colMeans(coverage)
+coverage
+```
+
+
+# Question 1e
+
+We can conclude that the true ratio of the mean rentnol of uninfected to infected children is between 0.638 and 0.958 with 95% confidence.
+
+Based on coverage alone, we use the bootstrap t method because it has 0.950 coverage on a 95% confidence interval, all other methods have coverage below 0.950.
+
+
+

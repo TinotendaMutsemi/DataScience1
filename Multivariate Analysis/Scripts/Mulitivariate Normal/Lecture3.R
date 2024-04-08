@@ -8,15 +8,14 @@
 library(mvtnorm) 
 
 x1 <- x2 <- seq(-4, 7, length = 50)
-
+x2
 mu <- c(1, 2)
 sigma <- matrix(c(1, 0.5,
-                  0.5, 2), 2)
+                  0.5, 2), 2, 2)
 
 #mvtnorm and emdbook (used later) both have a function called dmvnorm. Make sure you specify the appropriate one!
 dens <- matrix(mvtnorm::dmvnorm(expand.grid(x1, x2), 
                                 mean = mu, sigma = sigma), ncol = length(x1))
-
 persp(dens,
       theta = 80, phi = 30, expand = 0.6, #viewing parameters 
       shade = 0.25, col = 'lightblue', xlab = 'x1', ylab = 'x2', zlab = 'f(x1, x2)')

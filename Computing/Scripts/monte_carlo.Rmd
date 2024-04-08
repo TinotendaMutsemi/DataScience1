@@ -1,10 +1,12 @@
 
 
 ```{r}
+#some sin function
 fx <- function(x){
   return(exp((-x**2)/2)*((sin(2*x))**2))
 }
 
+#a normal distribution scaled by a constant to be used in the rejection sampling
 chx <- function(x, c){
   mean <- 0
   variance <- 1
@@ -15,7 +17,7 @@ chx <- function(x, c){
 ```
 
 ```{r}
-x <- seq(-5,5,0.1)
+x <- seq(-5,5,0.01)
 
 
 y <- fx(x)
@@ -23,7 +25,7 @@ plot.new
 plot(x, y, type = 'l')
 
 #add the normal distribution to the plot
-lines(x, y_normal(x, 2.5), col = 'red')
+lines(x, chx(x, 2.5), col = 'red')
 ```
 
 
@@ -39,15 +41,39 @@ chx_val
 gx <- fx_val/chx_val
 gx
 pr <-  runif(1,min = 0, max = 1)
+pr
 
-if (gx < pr){
-  accept[i] <- 
-}
+accept <- rep(0, 1000)
+
+if(pr < gx){
+  accept <- sample_x
+  }
 ```
-
-
 
 ```{r}
-run
+#doing it for vectorized version
+sample_x <- sample(x, 10000, replace = TRUE)
+fx_val <- fx(sample_x)
+chx_val <- chx(sample_x, 2.5)
+gx <- fx_val/chx_val
+pr <-  runif(10000,min = 0, max = 1)
+accept <- sample_x[pr < gx]
+
+
 ```
+
+```{r}
+plot.new
+hist(accept, freq = FALSE)
+y_sample <- fx(accept)
+plot(accept, y_sample, col = 'red')
+
+```
+
+```{r}
+#use MCMC to sample from fx
+
+
+```
+
 

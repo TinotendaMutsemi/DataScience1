@@ -1,0 +1,399 @@
+---
+title: "Parallel Computing with R"
+author: "Birgit Erni"
+date: today
+date-format: MMMM YYYY
+format: 
+  revealjs:
+    embed-resources: true
+execute:
+  echo: true
+  cache: false
+  output: false
+---
+
+<!-- https://nceas.github.io/oss-lessons/parallel-computing-in-r/parallel-computing-in-r.html -->
+
+<!-- https://www.r-exercises.com/2017/07/13/parallel-computing-exercises-foreach-and-doparallel-part-2/ -->
+
+## Serial vs Parallel {.smaller}
+
+**serial**:
+
+-   random walk
+-   optimization
+-   MCMC
+
+**parallel:**
+
+-   things you can do with `...apply()` functions
+
+-   B bootstrap samples
+
+-   processing of different files
+
+-   many simulations (e.g. Monte Carlo simulations)
+
+-   optimization with different starting values
+
+## `parallel` and `doParallel`
+
+1.  `parLapply` (package `parallel`, part of base R)
+
+    similar to `lapply`
+
+2.  `foreach` - (package `doParallel`)
+
+    similar to `for` loops
+
+3.  `mcapply` doesn't work on Windows (forking doesn't work)
+
+## lapply
+
+`lapply(list, function)`
+
+returns list with length = length of input list
+
+## `parallel` (Socket Cluster) {.scrollable}
+
+```{r}
+#| output: true
+#| output-location: slide
+
+dat <- rexp(1000, 1)
+
+set.seed(1)
+med.boot <- replicate(5000, {
+              xnew <- sample(dat, replace = TRUE)
+              median(xnew)
+            }
+ )
+
+hist(med.boot, main = "", las = 1, freq = FALSE)
+```
+
+------------------------------------------------------------------------
+
+```{r}
+library(parallel)
+
+cl <- makeCluster(3)       # register a cluster
+```
+
+```{r}
+#| eval: false
+#| 
+med.boot <- parLapply(cl, 1:5000, function(i) {
+         xnew <- sample(dat, replace = TRUE)
+         median(xnew)
+ })
+```
+
+Note: need to send data to each child process
+
+```{r}
+clusterExport(cl, "dat")
+
+mean.boot <- parLapply(cl, 1:5000, function(i) {
+         xnew <- sample(dat, replace = TRUE)
+         mean(xnew)
+ })  ## returns list
+
+head(mean.boot)
+stopCluster(cl)
+
+quantile(unlist(mean.boot), prob = c(0.025, 0.975))
+```
+
+## foreach and doParallel
+
+-   `foreach`: for loop which returns values
+
+-   `doParallel`: requires `foreach` format to split up work between cores
+
+## foreach
+
+```{r}
+library(foreach)
+
+# USUAL LOOP:
+x <- for(i in 1:3) sqrt(i)
+x
+# does not return anything
+
+# FOREACH LOOP:
+x <- foreach(i = 1:3) %do% sqrt(i)
+x
+# returns an object (default is a list)
+
+x <- foreach(a = 1:3, b = rep(10, times = 3)) %do% {
+  a + b
+}
+x
+```
+
+------------------------------------------------------------------------
+
+```{r}
+(x <- foreach(i = 1:3, .combine = "c") %do% sqrt(i))
+# returns a vector
+
+words <- c("statistical", "computing", "parallel")
+(x <- foreach(i = 1:3, .combine = "c") %do% 
+                              nchar(words[i]) )
+
+(x <- foreach(i = 1:3, .combine = "cbind") %do% 
+                       rnorm(4, mean = i, sd = 0.1))
+# returns a matrix
+```
+
+## How Efficient is my Code?
+
+```{r}
+B <- 100000
+a <- numeric(B)
+
+f.vector <- function() {
+  a <- sqrt(1:B)
+}
+
+f.for <- function() {
+    for(i in 1:B) a[i] <- sqrt(i)
+}
+
+f.foreach <- function() {
+    foreach(i = 1:B, .combine = "c")  %do% sqrt(i)
+}
+```
+
+------------------------------------------------------------------------
+
+```{r}
+#| output: true
+
+system.time(f.for())
+system.time(f.vector())
+system.time(f.foreach())
+```
+
+-   **user** = CPU time for execution of code (R session)
+-   **system** = CPU time for system (OS) processes (open/close files, input, output, check time)
+-   **elapsed** = time since process was started ($\pm$ sum)
+
+`foreach` will become much faster for more complex operations
+
+## `doParallel`
+
+```{r}
+library(doParallel)
+
+detectCores()
+
+# register a cluster:
+cl <- makeCluster(3)
+registerDoParallel(cl)
+
+# FOREACH LOOP IN PARALLEL
+x <- foreach(i = 1:3, .combine = "c") %dopar% sqrt(i)
+# each iteration is executed on a separate processor
+
+x
+
+x <- foreach(i = 1:100, .combine = "c") %dopar% sqrt(i)
+# will still use 3 processors
+
+stopCluster(cl)
+```
+
+Note the `%dopar%` operator
+
+## Example
+
+```{r}
+myfunc <- function() {
+  x <- 0
+  for(i in 1:10^5) {
+    x <- x + runif(1)
+  }
+  return(x)
+}
+```
+
+Suppose we need to execute this function three times...
+
+## Serial Processing
+
+```{r}
+results <- c()
+
+system.time(
+  for(i in 1:3) {
+    answer <- myfunc()
+    results <- c(results, answer)
+  }
+)
+
+results
+```
+
+## Parallel Processing
+
+```{r}
+library(doParallel)
+## Reproducible random numbers for parallel 
+RNGkind("L'Ecuyer-CMRG")  
+set.seed(1)
+
+# register a cluster:
+cl <- makeCluster(3)
+registerDoParallel(cl)
+
+system.time(
+  results <- foreach(i = 1:3, .combine = "c") %dopar% myfunc()
+)
+# each iteration is run on a separate processor
+results
+stopCluster(cl)
+save(results, file = "parallel.RData")
+```
+
+## replicate()
+
+The `replicate()` function takes three arguments:
+
+-   `n`: which is the number of replications to perform
+-   `expr`: the expression / function that should be run repeatedly
+-   `simplify`: controls the type of output the results of '`expr`' are saved into.
+
+```{r replicate}
+set.seed(123)
+replicate(n = 3, rnorm(5, 0, 1) )
+```
+
+## Compiling Computationally Heavy Quarto / RMarkdown Documents
+
+**Quarto:**[^1] In YAML:
+
+[^1]: <https://quarto.org/docs/computations/caching.html>
+
+```         
+execute:
+  cache: true
+```
+
+Chapters, sub-documents
+
+```         
+execute:
+  freeze: auto    # re-render only when source changes
+```
+
+**Rmarkdown**
+
+chunk (or global) option: `cache = TRUE`
+
+## References
+
+1.  Microsoft Corporation and Steve Weston (2018). doParallel: Foreach Parallel Adaptor for the 'parallel' Package. R package version 1.0.14. <https://CRAN.R-project.org/package=doParallel>
+
+2.  Microsoft and Steve Weston (2017). foreach: Provides Foreach Looping Construct for R. R package version 1.4.4. <https://CRAN.R-project.org/package=foreach>
+
+3.  Roger Peng. R Programming for Data Science. <https://bookdown.org/rdpeng/rprogdatascience/>
+
+<!-- https://dept.stat.lsa.umich.edu/~jerrick/courses/stat506/17-parallel-processing.html -->
+
+<!-- https://stackoverflow.com/questions/13412312/replicate-versus-a-for-loop -->
+
+```{r}
+#| echo: false
+#| eval: false
+
+library(doParallel)
+cluster <- makeCluster(3)
+registerDoParallel(cluster)
+
+n_iterations <- 1000
+
+results <- foreach(i = 1:n_iterations) %dopar% i^2
+
+stopCluster(cl = cluster)
+```
+
+## Faster `for` loops
+
+```{r}
+#| output-location: slide
+#| output: true
+
+repl_function = function(no_rep) means <- replicate(no_rep, mean(rnorm(50)))
+
+for_loop = function(no_rep) {
+   means <- c()
+   for(i in 1:no_rep) { 
+      means <- c(means, mean(rnorm(50)))
+   }
+   means
+}
+
+for_loop_prealloc = function(no_rep) {
+   means <- vector(mode = "numeric", length = no_rep)
+   for(i in 1:no_rep) { 
+      means[i] <- mean(rnorm(50))
+   }
+   means
+}
+
+no_loops = 50e2
+
+library(microbenchmark)
+microbenchmark(repl_function(no_loops), 
+          for_loop(no_loops), 
+          for_loop_prealloc(no_loops), 
+          times = 10)
+```
+
+<!-- ## Package parallel -->
+
+<!-- ```{r} -->
+
+<!-- library(parallel) -->
+
+<!-- (numCores <- detectCores()) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- fnct <- function(i) { -->
+
+<!--    Sys.sleep(10)  ## Do nothing for 10 seconds -->
+
+<!-- } -->
+
+<!-- r <- mclapply(1:10, fnct, mc.cores = 3)      ## 10 times, sleep 10s, spread over 3 cores -->
+
+<!-- str(r) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- r <- mclapply(1:5, function(i) { -->
+
+<!-- +         rnorm(3) -->
+
+<!-- + }, mc.cores = 5) -->
+
+<!-- > str(r) -->
+
+<!-- ``` -->
+
+<!-- ```{r} -->
+
+<!-- cl <- makeCluster(4) -->
+
+<!-- ``` -->
+
+<!-- ## Prac -->
+
+<!-- Use the `parallel` package and `mclapply()` to bootstrap the median for the galaxies data (in library MASS). -->

@@ -44,3 +44,13 @@ class(denstity_elev)
 plot(denstity_elev)
 ```
 
+
+
+```{r}
+# csr and cluster data
+#do clark index and 
+#do g and f functions
+#explain the observations 
+
+```
+

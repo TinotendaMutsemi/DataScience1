@@ -24,10 +24,9 @@ Hand in both the Rmarkdown / Quarto file AND the compiled pdf file.
 
 ------------------------------------------------------------------------
 
-## Question 1  {.unnumbered}
+## Question 1 {.unnumbered}
 
 \marginpar{\textbf[10]}
-
 
 <!-- Katzgraber -->
 
@@ -60,10 +59,9 @@ c)  importance sampling with the same proposal / candidate distribution as in b)
 
 Describe your methods. Illustrate your results. Compare your estimates of $I$, briefly comment.
 
-## Question 2: Markov Chain Monte Carlo  {.unnumbered}
+## Question 2: Markov Chain Monte Carlo {.unnumbered}
 
 \marginpar{\textbf[10]}
-
 
 <!-- Andrieu et al 2003 -->
 
@@ -75,11 +73,11 @@ Simulate N = 5000 values from $p(x)$ using simple MCMC sampling (Metropolis algo
 
 Use $q(x^* | x) \sim N(x, 100)$ as the proposal distribution, where $x^*$ is the candidate value and $x$ is the current value.
 
-Show a histogram of the generated values, superimposed the (normalized) $p(x)$. 
+Show a histogram of the generated values, superimposed the (normalized) $p(x)$.
 
 Plot the Markov chain and plot the autocorrelation function of this chain.
 
-Outline your methodology (only one or two sentences per step). 
+Outline your methodology (only one or two sentences per step).
 
 ## Guidelines {.unnumbered}
 
